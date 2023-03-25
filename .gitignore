@@ -13,6 +13,9 @@
 # The cache for docker container dependency
 /.cargo/config
 
+genesis-state
+genesis-wasm
+
 .DS_Store
 .idea
 .vscode
