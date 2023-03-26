@@ -7,7 +7,7 @@ pushd .
 PROJECT_ROOT=`git rev-parse --show-toplevel`
 cd $PROJECT_ROOT
 
-./target/release/parachain-template-node export-genesis-state > genesis-state
-./target/release/parachain-template-node export-genesis-wasm > genesis-wasm
+./target/release/thxnet-parachain-node export-genesis-state > genesis-state
+./target/release/thxnet-parachain-node export-genesis-wasm > genesis-wasm
 
 popd
