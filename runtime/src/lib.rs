@@ -453,6 +453,13 @@ impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 
+impl pallet_utility::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
+}
+
 parameter_types! {
 	pub const AssetDeposit: Balance = 100 * UNITS;
 	pub const ApprovalDeposit: Balance = 1 * UNITS;
@@ -538,6 +545,7 @@ construct_runtime!(
 		ParachainSystem: cumulus_pallet_parachain_system = 1,
 		Timestamp: pallet_timestamp = 2,
 		ParachainInfo: parachain_info = 3,
+		Utility: pallet_utility = 4,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
@@ -568,6 +576,7 @@ construct_runtime!(
 mod benches {
 	frame_benchmarking::define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
+		[pallet_utility, Utility]
 		[pallet_balances, Balances]
 		[pallet_assets, Assets]
 		[pallet_nfts, Nfts]
