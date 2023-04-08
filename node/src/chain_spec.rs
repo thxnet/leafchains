@@ -4,9 +4,7 @@ use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::crypto::UncheckedInto;
-use sp_core::{Pair, Public};
-use sp_runtime::traits::{IdentifyAccount, Verify};
-use thxnet_parachain_runtime::{AccountId, AuraId, Balance, Signature, UNITS};
+use thxnet_parachain_runtime::{AccountId, AuraId, Balance, UNITS};
 use hex_literal::hex;
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
@@ -16,13 +14,7 @@ pub type ChainSpec =
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 const COLLATOR_STASH: Balance = 200 * UNITS;
-
-/// Helper function to generate a crypto pair from seed
-pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
-	TPublic::Pair::from_string(&format!("//{}", seed), None)
-		.expect("static values are valid; qed")
-		.public()
-}
+const RELAY_CHAIN_NAME: &str = "thxnet_testnet";
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -41,30 +33,6 @@ impl Extensions {
 	}
 }
 
-type AccountPublic = <Signature as Verify>::Signer;
-
-/// Generate collator keys from seed.
-///
-/// This function's return type must always match the session keys of the chain in tuple format.
-pub fn get_collator_keys_from_seed(seed: &str) -> AuraId {
-	get_from_seed::<AuraId>(seed)
-}
-
-/// Helper function to generate an account ID from seed
-pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
-where
-	AccountPublic: From<<TPublic::Pair as Pair>::Public>,
-{
-	AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
-}
-
-/// Generate the session keys from individual elements.
-///
-/// The input must be a tuple of individual keys (a single arg for now since we have just one key).
-pub fn template_session_keys(keys: AuraId) -> thxnet_parachain_runtime::SessionKeys {
-	thxnet_parachain_runtime::SessionKeys { aura: keys }
-}
-
 pub fn thx_testnet_config() -> ChainSpec {
 	const PARA_ID: u32 = 1000;
 	let mut properties: Properties = Properties::new();
@@ -73,7 +41,7 @@ pub fn thx_testnet_config() -> ChainSpec {
 	properties.insert("ss58Format".into(), 42.into());
 
 	let extension: Extensions =
-		Extensions { relay_chain: "thxnet_testnet".into(), para_id: PARA_ID };
+		Extensions { relay_chain: RELAY_CHAIN_NAME.into(), para_id: PARA_ID };
 
 	// 5FpzA56evC5BKCYK2F4uf3Ry6CfUdm3xghBpy5zVdTUqmbKY
 	let root_key: AccountId = hex!["a67a5e76bf320f7852fd36f204dffafe2757728be46b12b825f9dead6b95c43e"].into();
@@ -102,6 +70,62 @@ pub fn thx_testnet_config() -> ChainSpec {
 		"thx! token Testnet",
 		// ID
 		"thx_testnet",
+		ChainType::Local,
+		move || {
+			testnet_genesis(
+				Some(root_key.clone()),
+				vec![(root_key.clone(), ROOT_STASH - (invulnerables.len() as u128) * COLLATOR_STASH)],
+				// initial collators.
+				invulnerables.iter().map(|x| (x.0.clone(), COLLATOR_STASH, x.1.clone())).collect(),
+				PARA_ID.into(),
+			)
+		},
+		Vec::new(),
+		None,
+		None,
+		None,
+		Some(properties),
+		extension,
+	)
+}
+
+pub fn lmt_testnet_config() -> ChainSpec {
+	const PARA_ID: u32 = 1001;
+	let mut properties: Properties = Properties::new();
+	properties.insert("tokenSymbol".into(), "DEVLMT".into());
+	properties.insert("tokenDecimals".into(), 10.into());
+	properties.insert("ss58Format".into(), 42.into());
+
+	let extension: Extensions =
+		Extensions { relay_chain: RELAY_CHAIN_NAME.into(), para_id: PARA_ID };
+
+	// 5GcBPgD5CjoRdzaCZUqDYLMUqWz62qZhjzdwZi1543mk9sid
+	let root_key: AccountId = hex!["c8f23b2c6ee09018ac747b790101e15cc69177a4db9f7f171966bb53ad2e651c"].into();
+
+	const ROOT_STASH: Balance = 72_000_000_000  * UNITS;
+
+	let invulnerables: Vec<(AccountId, AuraId)> = vec![
+		// a
+		(
+			// 5EyCvP9TAzVVfydqiToqJ8U3kd7QcZ6YCWRUBb2C98vGNtxB
+			hex!["808310f1ad771f05ccf47ee9999ef5950f870d53deab369db13576d9a5375f65"].into(),
+			// 5Gn4PzmKfUz7MQ9Kkk17rUQ73C2Hc3HQ754p1GUaxnwXCC24
+			hex!["d07b23c0a999f4a15c72bc76dcfcfda6ad27b55755d17606891e3127b8771c32"].unchecked_into(),
+		),
+		// b
+		(
+			// 5G3tnugL6GcMdFby88pCCAbgDzPWaXEuGr5raTJvqhNsKgnJ
+			hex!["b0527fdf0b795b7cc77eb7b5230c8b3d3d479fcb0c4f42a7dda84517a319170b"].into(),
+			// 5E4XLBvG6TyAa8u8NaEoE8UKxxa33KfWs2xpuQkJhKakt9Kq
+			hex!["585508ed89a7990205aa7a1ce6c3840407ffa68d509a976a5090f5f346ea8a37"].unchecked_into(),
+		),
+	];
+
+	ChainSpec::from_genesis(
+		// Name
+		"Limitet Testnet",
+		// ID
+		"lmt_testnet",
 		ChainType::Local,
 		move || {
 			testnet_genesis(
@@ -153,7 +177,7 @@ fn testnet_genesis(
 					(
 						acc.clone(),                 // account id
 						acc,                         // validator id
-						template_session_keys(aura), // session keys
+						thxnet_parachain_runtime::SessionKeys { aura }, // session keys
 					)
 				})
 				.collect(),
