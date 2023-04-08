@@ -11474,6 +11474,7 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "hex-literal",
  "jsonrpsee",
  "log",
  "pallet-asset-tx-payment",

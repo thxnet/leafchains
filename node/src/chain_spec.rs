@@ -1,10 +1,13 @@
 use cumulus_primitives_core::ParaId;
-use thxnet_parachain_runtime::{AccountId, AuraId, Signature, EXISTENTIAL_DEPOSIT};
+use sc_chain_spec::Properties;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
-use sp_core::{sr25519, Pair, Public};
+use sp_core::crypto::UncheckedInto;
+use sp_core::{Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
+use thxnet_parachain_runtime::{AccountId, AuraId, Balance, Signature, UNITS};
+use hex_literal::hex;
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec =
@@ -12,6 +15,7 @@ pub type ChainSpec =
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
+const COLLATOR_STASH: Balance = 200 * UNITS;
 
 /// Helper function to generate a crypto pair from seed
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -61,125 +65,66 @@ pub fn template_session_keys(keys: AuraId) -> thxnet_parachain_runtime::SessionK
 	thxnet_parachain_runtime::SessionKeys { aura: keys }
 }
 
-pub fn development_config() -> ChainSpec {
-	// Give your base currency a unit name and decimal places
-	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "UNIT".into());
+pub fn thx_testnet_config() -> ChainSpec {
+	const PARA_ID: u32 = 1000;
+	let mut properties: Properties = Properties::new();
+	properties.insert("tokenSymbol".into(), "DEV".into());
 	properties.insert("tokenDecimals".into(), 10.into());
 	properties.insert("ss58Format".into(), 42.into());
 
-	ChainSpec::from_genesis(
-		// Name
-		"THXNET. Development",
-		// ID
-		"thxnet_dev",
-		ChainType::Development,
-		move || {
-			testnet_genesis(
-				// initial collators.
-				vec![
-					(
-						get_account_id_from_seed::<sr25519::Public>("Alice"),
-						get_collator_keys_from_seed("Alice"),
-					),
-					(
-						get_account_id_from_seed::<sr25519::Public>("Bob"),
-						get_collator_keys_from_seed("Bob"),
-					),
-				],
-				vec![
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					get_account_id_from_seed::<sr25519::Public>("Bob"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie"),
-					get_account_id_from_seed::<sr25519::Public>("Dave"),
-					get_account_id_from_seed::<sr25519::Public>("Eve"),
-					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-				],
-				1000.into(),
-			)
-		},
-		Vec::new(),
-		None,
-		None,
-		None,
-		None,
-		Extensions {
-			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 1000,
-		},
-	)
-}
+	let extension: Extensions =
+		Extensions { relay_chain: "thxnet_testnet".into(), para_id: PARA_ID };
 
-pub fn local_testnet_config() -> ChainSpec {
-	// Give your base currency a unit name and decimal places
-	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "UNIT".into());
-	properties.insert("tokenDecimals".into(), 10.into());
-	properties.insert("ss58Format".into(), 42.into());
+	// 5FpzA56evC5BKCYK2F4uf3Ry6CfUdm3xghBpy5zVdTUqmbKY
+	let root_key: AccountId = hex!["a67a5e76bf320f7852fd36f204dffafe2757728be46b12b825f9dead6b95c43e"].into();
+
+	const ROOT_STASH: Balance = 50_000_000_000 * UNITS;
+
+	let invulnerables: Vec<(AccountId, AuraId)> = vec![
+		// a
+		(
+			// 5Enuh6As7rwgMz1h6ua62wq9WT767nArNuByyTaXnucXUdvb
+			hex!["78a89d10f59ebf0d9f938b16d9576862f6919e456e93f0d831b347d3f54b402e"].into(),
+			// 5G8yCRS86GTBqy8bSAEWy7HCQmBREFiNk4Z7N7xnvM7kcp3P
+			hex!["b4318e70ac3a9faea1cdad887f61ca34b3f7fb016199ddf15cb840d113d07831"].unchecked_into(),
+		),
+		// b
+		(
+			// 5E2796HJU4oBqwiUSPYBYVmP5vRt6y7VqrXUaS8EdzGJZrds
+			hex!["567d1bd9721a4c4a18392ee24452d7df64887ad0b743567915a5c991abbfc94e"].into(),
+			// 5HTywmE7ag2aQUVkKSBxJcfciccXWGygEnp8FR5CTvxoYeXB
+			hex!["eeedf7d268584a93ddb3536a11f0be8af3803fd84e5719f445656732e5439546"].unchecked_into(),
+		),
+	];
 
 	ChainSpec::from_genesis(
 		// Name
-		"THXENT. Testnet",
+		"thx! token Testnet",
 		// ID
-		"thxnet_testnet",
+		"thx_testnet",
 		ChainType::Local,
 		move || {
 			testnet_genesis(
+				Some(root_key.clone()),
+				vec![(root_key.clone(), ROOT_STASH - (invulnerables.len() as u128) * COLLATOR_STASH)],
 				// initial collators.
-				vec![
-					(
-						get_account_id_from_seed::<sr25519::Public>("Alice"),
-						get_collator_keys_from_seed("Alice"),
-					),
-					(
-						get_account_id_from_seed::<sr25519::Public>("Bob"),
-						get_collator_keys_from_seed("Bob"),
-					),
-				],
-				vec![
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					get_account_id_from_seed::<sr25519::Public>("Bob"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie"),
-					get_account_id_from_seed::<sr25519::Public>("Dave"),
-					get_account_id_from_seed::<sr25519::Public>("Eve"),
-					get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-					get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-					get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-				],
-				1000.into(),
+				invulnerables.iter().map(|x| (x.0.clone(), COLLATOR_STASH, x.1.clone())).collect(),
+				PARA_ID.into(),
 			)
 		},
-		// Bootnodes
 		Vec::new(),
-		// Telemetry
 		None,
-		// Protocol ID
-		Some("thxnet-local"),
-		// Fork ID
 		None,
-		// Properties
+		None,
 		Some(properties),
-		// Extensions
-		Extensions {
-			relay_chain: "rococo-local".into(), // You MUST set this to the correct network!
-			para_id: 1000,
-		},
+		extension,
 	)
 }
 
 fn testnet_genesis(
-	invulnerables: Vec<(AccountId, AuraId)>,
-	endowed_accounts: Vec<AccountId>,
+	root_key: Option<AccountId>,
+	endowed_accounts: Vec<(AccountId, Balance)>,
+	invulnerables: Vec<(AccountId, Balance, AuraId)>,
 	id: ParaId,
 ) -> thxnet_parachain_runtime::GenesisConfig {
 	thxnet_parachain_runtime::GenesisConfig {
@@ -189,18 +134,22 @@ fn testnet_genesis(
 				.to_vec(),
 		},
 		balances: thxnet_parachain_runtime::BalancesConfig {
-			balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
+			balances: endowed_accounts
+				.iter()
+				.map(|x| (x.0.clone(), x.1))
+				.chain(invulnerables.iter().clone().map(|k| (k.0.clone(), k.1)))
+				.collect(),
 		},
 		parachain_info: thxnet_parachain_runtime::ParachainInfoConfig { parachain_id: id },
 		collator_selection: thxnet_parachain_runtime::CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
-			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
+			invulnerables: invulnerables.iter().cloned().map(|(acc, _, _)| acc).collect(),
+			candidacy_bond: 100 * UNITS,
 			..Default::default()
 		},
 		session: thxnet_parachain_runtime::SessionConfig {
 			keys: invulnerables
 				.into_iter()
-				.map(|(acc, aura)| {
+				.map(|(acc, _, aura)| {
 					(
 						acc.clone(),                 // account id
 						acc,                         // validator id
@@ -219,6 +168,6 @@ fn testnet_genesis(
 		},
 		transaction_payment: Default::default(),
 		assets: Default::default(),
-		sudo: thxnet_parachain_runtime::SudoConfig { key: Some(get_account_id_from_seed::<sr25519::Public>("Alice")) },
+		sudo: thxnet_parachain_runtime::SudoConfig { key: root_key },
 	}
 }
