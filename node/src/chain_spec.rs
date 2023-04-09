@@ -1,11 +1,11 @@
 use cumulus_primitives_core::ParaId;
+use hex_literal::hex;
 use sc_chain_spec::Properties;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
 use sp_core::crypto::UncheckedInto;
 use thxnet_parachain_runtime::{AccountId, AuraId, Balance, UNITS};
-use hex_literal::hex;
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
 pub type ChainSpec =
@@ -43,8 +43,9 @@ pub fn thx_testnet_config() -> ChainSpec {
 	let extension: Extensions =
 		Extensions { relay_chain: RELAY_CHAIN_NAME.into(), para_id: PARA_ID };
 
-	// 5FpzA56evC5BKCYK2F4uf3Ry6CfUdm3xghBpy5zVdTUqmbKY
-	let root_key: AccountId = hex!["a67a5e76bf320f7852fd36f204dffafe2757728be46b12b825f9dead6b95c43e"].into();
+	// 5Dz8bZ69tXeUXSn4DdPUQy7N7TKhsae5pt5bnkrBR7sQ16Je
+	let root_key: AccountId =
+		hex!["54fb8527957aa0c90898f92c111ea98d007f521feec101677f4f62f3cf5b512a"].into();
 
 	const ROOT_STASH: Balance = 50_000_000_000 * UNITS;
 
@@ -54,14 +55,16 @@ pub fn thx_testnet_config() -> ChainSpec {
 			// 5Enuh6As7rwgMz1h6ua62wq9WT767nArNuByyTaXnucXUdvb
 			hex!["78a89d10f59ebf0d9f938b16d9576862f6919e456e93f0d831b347d3f54b402e"].into(),
 			// 5G8yCRS86GTBqy8bSAEWy7HCQmBREFiNk4Z7N7xnvM7kcp3P
-			hex!["b4318e70ac3a9faea1cdad887f61ca34b3f7fb016199ddf15cb840d113d07831"].unchecked_into(),
+			hex!["b4318e70ac3a9faea1cdad887f61ca34b3f7fb016199ddf15cb840d113d07831"]
+				.unchecked_into(),
 		),
 		// b
 		(
 			// 5E2796HJU4oBqwiUSPYBYVmP5vRt6y7VqrXUaS8EdzGJZrds
 			hex!["567d1bd9721a4c4a18392ee24452d7df64887ad0b743567915a5c991abbfc94e"].into(),
 			// 5HTywmE7ag2aQUVkKSBxJcfciccXWGygEnp8FR5CTvxoYeXB
-			hex!["eeedf7d268584a93ddb3536a11f0be8af3803fd84e5719f445656732e5439546"].unchecked_into(),
+			hex!["eeedf7d268584a93ddb3536a11f0be8af3803fd84e5719f445656732e5439546"]
+				.unchecked_into(),
 		),
 	];
 
@@ -74,9 +77,15 @@ pub fn thx_testnet_config() -> ChainSpec {
 		move || {
 			testnet_genesis(
 				Some(root_key.clone()),
-				vec![(root_key.clone(), ROOT_STASH - (invulnerables.len() as u128) * COLLATOR_STASH)],
+				vec![(
+					root_key.clone(),
+					ROOT_STASH - (invulnerables.len() as u128) * COLLATOR_STASH,
+				)],
 				// initial collators.
-				invulnerables.iter().map(|x| (x.0.clone(), COLLATOR_STASH, x.1.clone())).collect(),
+				invulnerables
+					.iter()
+					.map(|x| (x.0.clone(), COLLATOR_STASH, x.1.clone()))
+					.collect(),
 				PARA_ID.into(),
 			)
 		},
@@ -100,9 +109,10 @@ pub fn lmt_testnet_config() -> ChainSpec {
 		Extensions { relay_chain: RELAY_CHAIN_NAME.into(), para_id: PARA_ID };
 
 	// 5GcBPgD5CjoRdzaCZUqDYLMUqWz62qZhjzdwZi1543mk9sid
-	let root_key: AccountId = hex!["c8f23b2c6ee09018ac747b790101e15cc69177a4db9f7f171966bb53ad2e651c"].into();
+	let root_key: AccountId =
+		hex!["c8f23b2c6ee09018ac747b790101e15cc69177a4db9f7f171966bb53ad2e651c"].into();
 
-	const ROOT_STASH: Balance = 72_000_000_000  * UNITS;
+	const ROOT_STASH: Balance = 72_000_000_000 * UNITS;
 
 	let invulnerables: Vec<(AccountId, AuraId)> = vec![
 		// a
@@ -110,14 +120,16 @@ pub fn lmt_testnet_config() -> ChainSpec {
 			// 5EyCvP9TAzVVfydqiToqJ8U3kd7QcZ6YCWRUBb2C98vGNtxB
 			hex!["808310f1ad771f05ccf47ee9999ef5950f870d53deab369db13576d9a5375f65"].into(),
 			// 5Gn4PzmKfUz7MQ9Kkk17rUQ73C2Hc3HQ754p1GUaxnwXCC24
-			hex!["d07b23c0a999f4a15c72bc76dcfcfda6ad27b55755d17606891e3127b8771c32"].unchecked_into(),
+			hex!["d07b23c0a999f4a15c72bc76dcfcfda6ad27b55755d17606891e3127b8771c32"]
+				.unchecked_into(),
 		),
 		// b
 		(
 			// 5G3tnugL6GcMdFby88pCCAbgDzPWaXEuGr5raTJvqhNsKgnJ
 			hex!["b0527fdf0b795b7cc77eb7b5230c8b3d3d479fcb0c4f42a7dda84517a319170b"].into(),
 			// 5E4XLBvG6TyAa8u8NaEoE8UKxxa33KfWs2xpuQkJhKakt9Kq
-			hex!["585508ed89a7990205aa7a1ce6c3840407ffa68d509a976a5090f5f346ea8a37"].unchecked_into(),
+			hex!["585508ed89a7990205aa7a1ce6c3840407ffa68d509a976a5090f5f346ea8a37"]
+				.unchecked_into(),
 		),
 	];
 
@@ -130,9 +142,15 @@ pub fn lmt_testnet_config() -> ChainSpec {
 		move || {
 			testnet_genesis(
 				Some(root_key.clone()),
-				vec![(root_key.clone(), ROOT_STASH - (invulnerables.len() as u128) * COLLATOR_STASH)],
+				vec![(
+					root_key.clone(),
+					ROOT_STASH - (invulnerables.len() as u128) * COLLATOR_STASH,
+				)],
 				// initial collators.
-				invulnerables.iter().map(|x| (x.0.clone(), COLLATOR_STASH, x.1.clone())).collect(),
+				invulnerables
+					.iter()
+					.map(|x| (x.0.clone(), COLLATOR_STASH, x.1.clone()))
+					.collect(),
 				PARA_ID.into(),
 			)
 		},
@@ -175,8 +193,8 @@ fn testnet_genesis(
 				.into_iter()
 				.map(|(acc, _, aura)| {
 					(
-						acc.clone(),                 // account id
-						acc,                         // validator id
+						acc.clone(),                                    // account id
+						acc,                                            // validator id
 						thxnet_parachain_runtime::SessionKeys { aura }, // session keys
 					)
 				})
