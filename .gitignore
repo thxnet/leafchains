@@ -19,3 +19,6 @@ genesis-wasm
 .DS_Store
 .idea
 .vscode
+
+# nix output result symbol link
+result
