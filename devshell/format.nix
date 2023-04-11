@@ -18,9 +18,10 @@ pkgs.runCommand "check-format"
   shfmt -d ${./..}
   echo
 
-  echo "Checking shell script with \`shellcheck\`"
-  shfmt -f ${./..} | xargs shellcheck -s bash
-  echo
+  # TODO:uncomment the following lines if there is shell script in this repository
+  # echo "Checking shell script with \`shellcheck\`"
+  # shfmt -f ${./..} | xargs shellcheck -s bash
+  # echo
 
   echo "Checking JavaScript, TypeScript, Markdown, JSON, YAML format with \`prettier\`"
   fd --glob '**/*.{css,html,js,json,jsx,md,mdx,scss,ts,yaml}' ${./..} | xargs prettier --check
