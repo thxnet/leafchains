@@ -1,5 +1,5 @@
 {
-  description = "THXNET Parachain";
+  description = "THXNET. Leafchains";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -64,6 +64,23 @@
           src = craneLib.cleanCargoSource (craneLib.path ./.);
           commonArgs = {
             inherit src;
+
+            nativeBuildInputs = with pkgs; [
+              llvmPackages.clang
+              llvmPackages.libclang
+
+              mold
+              protobuf
+            ];
+
+            PROTOC = "${pkgs.protobuf}/bin/protoc";
+            PROTOC_INCLUDE = "${pkgs.protobuf}/include";
+
+            LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+
+            SUBSTRATE_CLI_GIT_COMMIT_HASH = "";
+
+            SKIP_WASM_BUILD = 1;
           };
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
         in
