@@ -1,11 +1,10 @@
 [package]
 name = "pallet-template"
-authors = ["Anonymous"]
 description = "FRAME pallet template for defining custom runtime logic."
 version = "0.1.0"
-license = "Unlicense"
-homepage = "https://substrate.io"
-repository = "https://github.com/paritytech/substrate/"
+license = "GPL-3.0-only"
+homepage = "https://thxnet.org/"
+repository = "https://github.com/thxnet/leafchains"
 edition = "2021"
 
 [package.metadata.docs.rs]
@@ -32,10 +31,10 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", default-features
 default = ["std"]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 std = [
-	"codec/std",
-	"scale-info/std",
-	"frame-benchmarking/std",
-	"frame-support/std",
-	"frame-system/std",
+    "codec/std",
+    "scale-info/std",
+    "frame-benchmarking/std",
+    "frame-support/std",
+    "frame-system/std",
 ]
 try-runtime = [ "frame-support/try-runtime" ]
