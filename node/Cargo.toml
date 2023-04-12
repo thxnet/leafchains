@@ -1,11 +1,9 @@
 [package]
 name = "thxnet-parachain-node"
 version = "0.1.0"
-authors = ["Anonymous"]
-description = "A new Cumulus FRAME-based Substrate Node, ready for hacking together a parachain."
-license = "Unlicense"
-homepage = "https://substrate.io"
-repository = "https://github.com/paritytech/cumulus/"
+license = "GPL-3.0-only"
+homepage = "https://thxnet.org/"
+repository = "https://github.com/thxnet/leafchains"
 edition = "2021"
 build = "build.rs"
 
@@ -74,11 +72,11 @@ substrate-build-script-utils = { git = "https://github.com/paritytech/substrate"
 [features]
 default = []
 runtime-benchmarks = [
-	"try-runtime-cli/try-runtime",
-	"thxnet-parachain-runtime/runtime-benchmarks",
-	"polkadot-cli/runtime-benchmarks",
+    "try-runtime-cli/try-runtime",
+    "thxnet-parachain-runtime/runtime-benchmarks",
+    "polkadot-cli/runtime-benchmarks",
 ]
 try-runtime = [
-	"try-runtime-cli/try-runtime",
-	"thxnet-parachain-runtime/try-runtime"
+    "try-runtime-cli/try-runtime",
+    "thxnet-parachain-runtime/try-runtime"
 ]
