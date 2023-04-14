@@ -35,7 +35,7 @@ impl SubstrateCli for Cli {
 
     fn description() -> String {
         format!(
-            "THXENT. Collator\n\nThe command-line arguments provided first will be passed to the \
+            "THXNET. Collator\n\nThe command-line arguments provided first will be passed to the \
              parachain node, while the arguments provided after -- will be passed to the relay \
              chain node.\n\n{} <parachain-args> -- <relay-chain-args>",
             Self::executable_name()
@@ -58,13 +58,13 @@ impl SubstrateCli for Cli {
 }
 
 impl SubstrateCli for RelayChainCli {
-    fn impl_name() -> String { "THXENT. Collator".into() }
+    fn impl_name() -> String { "THXNET. Collator".into() }
 
     fn impl_version() -> String { env!("SUBSTRATE_CLI_IMPL_VERSION").into() }
 
     fn description() -> String {
         format!(
-            "THXENT. Collator\n\nThe command-line arguments provided first will be passed to the \
+            "THXNET. Collator\n\nThe command-line arguments provided first will be passed to the \
              parachain node, while the arguments provided after -- will be passed to the relay \
              chain node.\n\n{} <parachain-args> -- <relay-chain-args>",
             Self::executable_name()
@@ -73,7 +73,7 @@ impl SubstrateCli for RelayChainCli {
 
     fn author() -> String { env!("CARGO_PKG_AUTHORS").into() }
 
-    fn support_url() -> String { "https://github.com/paritytech/cumulus/issues/new".into() }
+    fn support_url() -> String { "https://github.com/thxnet/rootchain/issues/new".into() }
 
     fn copyright_start_year() -> i32 { 2020 }
 
