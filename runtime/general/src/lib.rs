@@ -26,9 +26,6 @@ use frame_system::{
     EnsureRoot, EnsureSigned,
 };
 use pallet_nfts::PalletFeatures;
-/// Import the template pallet.
-pub use pallet_template;
-// Polkadot imports
 use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
 use sp_api::impl_runtime_apis;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -420,11 +417,6 @@ impl pallet_collator_selection::Config for Runtime {
     type WeightInfo = ();
 }
 
-/// Configure the pallet template in pallets/template.
-impl pallet_template::Config for Runtime {
-    type RuntimeEvent = RuntimeEvent;
-}
-
 impl pallet_utility::Config for Runtime {
     type PalletsOrigin = OriginCaller;
     type RuntimeCall = RuntimeCall;
@@ -540,8 +532,6 @@ construct_runtime!(
         CumulusXcm: cumulus_pallet_xcm = 32,
         DmpQueue: cumulus_pallet_dmp_queue = 33,
 
-        // Template
-        TemplatePallet: pallet_template = 40,
         Sudo: pallet_sudo = 255,
     }
 );
