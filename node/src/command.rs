@@ -1,4 +1,4 @@
-use std::net::SocketAddr;
+use std::{net::SocketAddr, path::PathBuf};
 
 use codec::Encode;
 use cumulus_client_cli::generate_genesis_block;
@@ -20,14 +20,6 @@ use crate::{
     service::{new_partial, ParachainNativeExecutor},
 };
 
-fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
-    Ok(match id {
-        "thx-testnet" => Box::new(chain_spec::thx_testnet_config()),
-        "lmt-testnet" => Box::new(chain_spec::lmt_testnet_config()),
-        path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
-    })
-}
-
 impl SubstrateCli for Cli {
     fn impl_name() -> String { "THXLAB THXNET.".into() }
 
@@ -44,12 +36,16 @@ impl SubstrateCli for Cli {
 
     fn author() -> String { env!("CARGO_PKG_AUTHORS").into() }
 
-    fn support_url() -> String { "https://github.com/paritytech/cumulus/issues/new".into() }
+    fn support_url() -> String { "https://github.com/thxnet/leafchains/issues/new".into() }
 
-    fn copyright_start_year() -> i32 { 2020 }
+    fn copyright_start_year() -> i32 { 2023 }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-        load_spec(id)
+        Ok(match id {
+            "thx-testnet" => Box::new(chain_spec::thx::testnet_config()),
+            "lmt-testnet" => Box::new(chain_spec::lmt::testnet_config()),
+            path => Box::new(chain_spec::ChainSpec::from_json_file(PathBuf::from(path))?),
+        })
     }
 
     fn native_runtime_version(_: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -75,7 +71,7 @@ impl SubstrateCli for RelayChainCli {
 
     fn support_url() -> String { "https://github.com/thxnet/rootchain/issues/new".into() }
 
-    fn copyright_start_year() -> i32 { 2020 }
+    fn copyright_start_year() -> i32 { 2023 }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
         polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id)
