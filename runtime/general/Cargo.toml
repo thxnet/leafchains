@@ -1,9 +1,10 @@
 [package]
 name = "thxnet-parachain-runtime"
 version = "0.1.0"
-license = "GPL-3.0-only"
+authors = ["THXLAB PTE. LTD. <contact@thxlab.io>"]
 homepage = "https://thxnet.org/"
 repository = "https://github.com/thxnet/leafchains"
+license = "GPL-3.0-only"
 edition = "2021"
 
 [package.metadata.docs.rs]
