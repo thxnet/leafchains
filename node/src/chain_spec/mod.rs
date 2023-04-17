@@ -4,7 +4,6 @@ pub mod thx;
 use cumulus_primitives_core::ParaId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde::{Deserialize, Serialize};
-
 use thxnet_parachain_runtime::{AccountId, AuraId, Balance, UNITS};
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
