@@ -5,8 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     fenix = {
-      # nightly-2023-04-10
-      url = "github:nix-community/fenix?ref=4869bb2408e6778840c8d00be4b45d8353f24723";
+      url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     crane = {
@@ -31,15 +30,10 @@
             ];
           };
 
-          rustToolchain = (with fenix.packages.${system}; combine [
-            complete.cargo
-            complete.rustc
-            complete.clippy
-            complete.rust-src
-            complete.rustfmt
-
-            targets.wasm32-unknown-unknown.latest.rust-std
-          ]);
+          rustToolchain = fenix.packages.${system}.fromToolchainFile {
+            file = ./rust-toolchain.toml;
+            sha256 = "sha256-DCQf3SCznJP8yCYJ4Vziqq3KZkacs+PrWkCir6y3tGA=";
+          };
 
           rustPlatform = pkgs.makeRustPlatform {
             cargo = rustToolchain;
@@ -68,9 +62,6 @@
             nativeBuildInputs = with pkgs; [
               llvmPackages.clang
               llvmPackages.libclang
-
-              mold
-              protobuf
             ];
 
             PROTOC = "${pkgs.protobuf}/bin/protoc";
@@ -79,8 +70,7 @@
             LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
 
             SUBSTRATE_CLI_GIT_COMMIT_HASH = "";
-
-            SKIP_WASM_BUILD = 1;
+            SKIP_WASM_BUILD = "true";
           };
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
         in
