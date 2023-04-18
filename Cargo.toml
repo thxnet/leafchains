@@ -6,3 +6,11 @@ members = [
    "node",
    "runtime/general",
 ]
+
+[workspace.package]
+version = "0.1.0"
+authors = ["THXLAB PTE. LTD. <contact@thxlab.io>"]
+homepage = "https://thxnet.org/"
+repository = "https://github.com/thxnet/leafchains"
+license = "GPL-3.0-only"
+edition = "2021"
