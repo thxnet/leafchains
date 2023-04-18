@@ -21,7 +21,7 @@ pub mod fee {
     use smallvec::smallvec;
     pub use sp_runtime::Perbill;
 
-    use crate::constants::currency::*;
+    use crate::constants::currency::{Balance, DOLLARS};
 
     pub const INDEX_DEPOSIT: Balance = 0 * DOLLARS;
     pub const EXISTENTIAL_DEPOSIT: Balance = DOLLARS / 1000;
