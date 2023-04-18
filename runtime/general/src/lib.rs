@@ -124,11 +124,6 @@ pub type Executive = frame_executive::Executive<
     AllPalletsWithSystem,
 >;
 
-impl pallet_sudo::Config for Runtime {
-    type RuntimeCall = RuntimeCall;
-    type RuntimeEvent = RuntimeEvent;
-}
-
 /// Opaque types. These are used by the CLI to instantiate machinery that don't
 /// need to know the specifics of the runtime. They can then be made to be
 /// agnostic over specific formats of data like extrinsics, allowing for them to
@@ -417,6 +412,29 @@ impl pallet_collator_selection::Config for Runtime {
     type WeightInfo = ();
 }
 
+impl pallet_sudo::Config for Runtime {
+    type RuntimeCall = RuntimeCall;
+    type RuntimeEvent = RuntimeEvent;
+}
+
+parameter_types! {
+    // One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
+    pub const DepositBase: Balance = deposit(1, 88);
+    // Additional storage item size of 32 bytes.
+    pub const DepositFactor: Balance = deposit(0, 32);
+    pub const MaxSignatories: u32 = 100;
+}
+
+impl pallet_multisig::Config for Runtime {
+    type Currency = Balances;
+    type DepositBase = DepositBase;
+    type DepositFactor = DepositFactor;
+    type MaxSignatories = MaxSignatories;
+    type RuntimeCall = RuntimeCall;
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
+}
+
 impl pallet_utility::Config for Runtime {
     type PalletsOrigin = OriginCaller;
     type RuntimeCall = RuntimeCall;
@@ -512,6 +530,9 @@ construct_runtime!(
         ParachainInfo: parachain_info = 3,
         Utility: pallet_utility = 4,
 
+        // Multisig dispatch.
+        Multisig: pallet_multisig = 5,
+
         // Monetary stuff.
         Balances: pallet_balances = 10,
         TransactionPayment: pallet_transaction_payment = 11,
@@ -543,6 +564,7 @@ mod benches {
         [pallet_utility, Utility]
         [pallet_balances, Balances]
         [pallet_assets, Assets]
+        [pallet_multisig, Multisig]
         [pallet_nfts, Nfts]
         [pallet_session, SessionBench::<Runtime>]
         [pallet_timestamp, Timestamp]
