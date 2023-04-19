@@ -16,7 +16,7 @@
 
   outputs = { self, nixpkgs, flake-utils, fenix, crane }:
     let
-      name = "thxnet-parachain-node";
+      name = "thxnet-leafchains";
       version = "0.1.0";
     in
     (flake-utils.lib.eachDefaultSystem
@@ -82,18 +82,18 @@
           };
 
           packages = rec {
-            default = thxnet-parachain-node;
-            thxnet-parachain-node = pkgs.callPackage ./devshell/package.nix {
+            default = thxnet-leafchain;
+            thxnet-leafchain = pkgs.callPackage ./devshell/package.nix {
               inherit name version rustPlatform;
             };
             container = pkgs.callPackage ./devshell/container.nix {
-              inherit name version thxnet-parachain-node;
+              inherit name version thxnet-leafchain;
             };
           };
 
           apps.default = flake-utils.lib.mkApp {
-            drv = packages.thxnet-parachain-node;
-            exePath = "/bin/thxnet-parachain-node";
+            drv = packages.thxnet-leafchain;
+            exePath = "/bin/thxnet-leafchain";
           };
 
           checks = {
@@ -115,7 +115,7 @@
           };
         })) // {
       overlays.default = final: prev: {
-        thxnet-parachain-node = final.callPackage ./devshell/package.nix {
+        thxnet-leafchain = final.callPackage ./devshell/package.nix {
           inherit name version;
         };
       };

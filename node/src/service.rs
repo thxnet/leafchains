@@ -18,6 +18,8 @@ use cumulus_primitives_core::ParaId;
 use cumulus_relay_chain_interface::RelayChainInterface;
 // Substrate Imports
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
+// Local Runtime Types
+use general_runtime::{opaque::Block, RuntimeApi};
 use sc_consensus::ImportQueue;
 use sc_executor::NativeElseWasmExecutor;
 use sc_network::NetworkBlock;
@@ -26,8 +28,6 @@ use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, Ta
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sp_keystore::SyncCryptoStorePtr;
 use substrate_prometheus_endpoint::Registry;
-// Local Runtime Types
-use thxnet_parachain_runtime::{opaque::Block, RuntimeApi};
 
 /// Native executor type.
 pub struct ParachainNativeExecutor;
@@ -36,10 +36,10 @@ impl sc_executor::NativeExecutionDispatch for ParachainNativeExecutor {
     type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
     fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-        thxnet_parachain_runtime::api::dispatch(method, data)
+        general_runtime::api::dispatch(method, data)
     }
 
-    fn native_version() -> sc_executor::NativeVersion { thxnet_parachain_runtime::native_version() }
+    fn native_version() -> sc_executor::NativeVersion { general_runtime::native_version() }
 }
 
 type ParachainExecutor = NativeElseWasmExecutor<ParachainNativeExecutor>;

@@ -2,13 +2,12 @@ pub mod lmt;
 pub mod thx;
 
 use cumulus_primitives_core::ParaId;
+use general_runtime::{AccountId, AuraId, Balance, UNITS};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde::{Deserialize, Serialize};
-use thxnet_parachain_runtime::{AccountId, AuraId, Balance, UNITS};
 
 /// Specialized `ChainSpec` for the normal parachain runtime.
-pub type ChainSpec =
-    sc_service::GenericChainSpec<thxnet_parachain_runtime::GenesisConfig, Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<general_runtime::GenesisConfig, Extensions>;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
@@ -37,34 +36,34 @@ fn testnet_genesis(
     endowed_accounts: Vec<(AccountId, Balance)>,
     invulnerables: Vec<(AccountId, Balance, AuraId)>,
     id: ParaId,
-) -> thxnet_parachain_runtime::GenesisConfig {
-    thxnet_parachain_runtime::GenesisConfig {
-        system: thxnet_parachain_runtime::SystemConfig {
-            code: thxnet_parachain_runtime::WASM_BINARY
+) -> general_runtime::GenesisConfig {
+    general_runtime::GenesisConfig {
+        system: general_runtime::SystemConfig {
+            code: general_runtime::WASM_BINARY
                 .expect("WASM binary was not build, please build it!")
                 .to_vec(),
         },
-        balances: thxnet_parachain_runtime::BalancesConfig {
+        balances: general_runtime::BalancesConfig {
             balances: endowed_accounts
                 .iter()
                 .map(|x| (x.0.clone(), x.1))
                 .chain(invulnerables.iter().clone().map(|k| (k.0.clone(), k.1)))
                 .collect(),
         },
-        parachain_info: thxnet_parachain_runtime::ParachainInfoConfig { parachain_id: id },
-        collator_selection: thxnet_parachain_runtime::CollatorSelectionConfig {
+        parachain_info: general_runtime::ParachainInfoConfig { parachain_id: id },
+        collator_selection: general_runtime::CollatorSelectionConfig {
             invulnerables: invulnerables.iter().cloned().map(|(acc, ..)| acc).collect(),
             candidacy_bond: 100 * UNITS,
             ..Default::default()
         },
-        session: thxnet_parachain_runtime::SessionConfig {
+        session: general_runtime::SessionConfig {
             keys: invulnerables
                 .into_iter()
                 .map(|(acc, _, aura)| {
                     (
-                        acc.clone(),                                    // account id
-                        acc,                                            // validator id
-                        thxnet_parachain_runtime::SessionKeys { aura }, // session keys
+                        acc.clone(),                           // account id
+                        acc,                                   // validator id
+                        general_runtime::SessionKeys { aura }, // session keys
                     )
                 })
                 .collect(),
@@ -74,11 +73,11 @@ fn testnet_genesis(
         aura: Default::default(),
         aura_ext: Default::default(),
         parachain_system: Default::default(),
-        polkadot_xcm: thxnet_parachain_runtime::PolkadotXcmConfig {
+        polkadot_xcm: general_runtime::PolkadotXcmConfig {
             safe_xcm_version: Some(SAFE_XCM_VERSION),
         },
         transaction_payment: Default::default(),
         assets: Default::default(),
-        sudo: thxnet_parachain_runtime::SudoConfig { key: root_key },
+        sudo: general_runtime::SudoConfig { key: root_key },
     }
 }
