@@ -29,7 +29,6 @@ pkgs.mkShell {
     llvmPackages.clang
     llvmPackages.libclang
 
-    mold
     protobuf
 
     treefmt

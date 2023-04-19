@@ -1,12 +1,12 @@
 [package]
 name = "thxnet-parachain-node"
-version = "0.1.0"
-authors = ["THXLAB PTE. LTD. <contact@thxlab.io>"]
-homepage = "https://thxnet.org/"
-repository = "https://github.com/thxnet/leafchains"
-license = "GPL-3.0-only"
-edition = "2021"
 build = "build.rs"
+version.workspace = true
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
 
 [dependencies]
 hex-literal = "0.3.4"
