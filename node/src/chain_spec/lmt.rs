@@ -1,8 +1,8 @@
+use general_runtime::{AccountId, AuraId, Balance, UNITS};
 use hex_literal::hex;
 use sc_chain_spec::Properties;
 use sc_service::ChainType;
 use sp_core::crypto::UncheckedInto;
-use thxnet_parachain_runtime::{AccountId, AuraId, Balance, UNITS};
 
 use crate::chain_spec::{testnet_genesis, ChainSpec, Extensions, COLLATOR_STASH, RELAY_CHAIN_NAME};
 
@@ -10,23 +10,24 @@ const ROOT_STASH: Balance = 72_000_000_000 * UNITS;
 const PARA_ID: u32 = 1001;
 
 pub fn testnet_config() -> ChainSpec {
-    let mut properties: Properties = Properties::new();
+    let mut properties = Properties::new();
     properties.insert("tokenSymbol".into(), "DEVLMT".into());
     properties.insert("tokenDecimals".into(), 10.into());
     properties.insert("ss58Format".into(), 42.into());
 
-    let extension: Extensions =
-        Extensions { relay_chain: RELAY_CHAIN_NAME.into(), para_id: PARA_ID };
+    let extension = Extensions { relay_chain: RELAY_CHAIN_NAME.to_string(), para_id: PARA_ID };
 
     // 5GcBPgD5CjoRdzaCZUqDYLMUqWz62qZhjzdwZi1543mk9sid
-    let root_key: AccountId =
-        hex!["c8f23b2c6ee09018ac747b790101e15cc69177a4db9f7f171966bb53ad2e651c"].into();
+    let root_key =
+        AccountId::from(hex!["c8f23b2c6ee09018ac747b790101e15cc69177a4db9f7f171966bb53ad2e651c"]);
 
     let invulnerables: Vec<(AccountId, AuraId)> = vec![
         // a
         (
             // 5EyCvP9TAzVVfydqiToqJ8U3kd7QcZ6YCWRUBb2C98vGNtxB
-            hex!["808310f1ad771f05ccf47ee9999ef5950f870d53deab369db13576d9a5375f65"].into(),
+            AccountId::from(hex![
+                "808310f1ad771f05ccf47ee9999ef5950f870d53deab369db13576d9a5375f65"
+            ]),
             // 5Gn4PzmKfUz7MQ9Kkk17rUQ73C2Hc3HQ754p1GUaxnwXCC24
             hex!["d07b23c0a999f4a15c72bc76dcfcfda6ad27b55755d17606891e3127b8771c32"]
                 .unchecked_into(),
@@ -34,7 +35,9 @@ pub fn testnet_config() -> ChainSpec {
         // b
         (
             // 5G3tnugL6GcMdFby88pCCAbgDzPWaXEuGr5raTJvqhNsKgnJ
-            hex!["b0527fdf0b795b7cc77eb7b5230c8b3d3d479fcb0c4f42a7dda84517a319170b"].into(),
+            AccountId::from(hex![
+                "b0527fdf0b795b7cc77eb7b5230c8b3d3d479fcb0c4f42a7dda84517a319170b"
+            ]),
             // 5E4XLBvG6TyAa8u8NaEoE8UKxxa33KfWs2xpuQkJhKakt9Kq
             hex!["585508ed89a7990205aa7a1ce6c3840407ffa68d509a976a5090f5f346ea8a37"]
                 .unchecked_into(),

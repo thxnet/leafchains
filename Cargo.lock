@@ -3081,6 +3081,67 @@ dependencies = [
 ]
 
 [[package]]
+name = "general-runtime"
+version = "0.1.0"
+dependencies = [
+ "cumulus-pallet-aura-ext",
+ "cumulus-pallet-dmp-queue",
+ "cumulus-pallet-parachain-system",
+ "cumulus-pallet-session-benchmarking",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
+ "cumulus-primitives-core",
+ "cumulus-primitives-timestamp",
+ "cumulus-primitives-utility",
+ "frame-benchmarking",
+ "frame-executive",
+ "frame-support",
+ "frame-system",
+ "frame-system-benchmarking",
+ "frame-system-rpc-runtime-api",
+ "frame-try-runtime",
+ "hex-literal",
+ "log",
+ "pallet-asset-tx-payment",
+ "pallet-assets",
+ "pallet-aura",
+ "pallet-authorship",
+ "pallet-balances",
+ "pallet-collator-selection",
+ "pallet-multisig",
+ "pallet-nfts",
+ "pallet-nfts-runtime-api",
+ "pallet-session",
+ "pallet-sudo",
+ "pallet-timestamp",
+ "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-utility",
+ "pallet-xcm",
+ "parachain-info",
+ "parity-scale-codec",
+ "polkadot-parachain",
+ "polkadot-runtime-common",
+ "scale-info",
+ "smallvec",
+ "sp-api",
+ "sp-block-builder",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-inherents",
+ "sp-offchain",
+ "sp-runtime",
+ "sp-session",
+ "sp-std",
+ "sp-transaction-pool",
+ "sp-version",
+ "substrate-wasm-builder",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+]
+
+[[package]]
 name = "generic-array"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11503,7 +11564,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "thxnet-parachain-node"
+name = "thxnet-leafchain"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -11516,6 +11577,7 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "frame-benchmarking",
  "frame-benchmarking-cli",
+ "general-runtime",
  "hex-literal",
  "jsonrpsee",
  "log",
@@ -11553,70 +11615,8 @@ dependencies = [
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
- "thxnet-parachain-runtime",
  "try-runtime-cli",
  "xcm",
-]
-
-[[package]]
-name = "thxnet-parachain-runtime"
-version = "0.1.0"
-dependencies = [
- "cumulus-pallet-aura-ext",
- "cumulus-pallet-dmp-queue",
- "cumulus-pallet-parachain-system",
- "cumulus-pallet-session-benchmarking",
- "cumulus-pallet-xcm",
- "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
- "cumulus-primitives-timestamp",
- "cumulus-primitives-utility",
- "frame-benchmarking",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "frame-system-rpc-runtime-api",
- "frame-try-runtime",
- "hex-literal",
- "log",
- "pallet-asset-tx-payment",
- "pallet-assets",
- "pallet-aura",
- "pallet-authorship",
- "pallet-balances",
- "pallet-collator-selection",
- "pallet-multisig",
- "pallet-nfts",
- "pallet-nfts-runtime-api",
- "pallet-session",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "pallet-utility",
- "pallet-xcm",
- "parachain-info",
- "parity-scale-codec",
- "polkadot-parachain",
- "polkadot-runtime-common",
- "scale-info",
- "smallvec",
- "sp-api",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-core",
- "sp-inherents",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-std",
- "sp-transaction-pool",
- "sp-version",
- "substrate-wasm-builder",
- "xcm",
- "xcm-builder",
- "xcm-executor",
 ]
 
 [[package]]

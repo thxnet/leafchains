@@ -1,5 +1,5 @@
 [package]
-name = "thxnet-parachain-runtime"
+name = "general-runtime"
 build = "build.rs"
 version.workspace = true
 authors.workspace = true

@@ -17,7 +17,7 @@ LABEL description="Container image for THXNET." \
     io.thxnet.image.vendor="thxlab.io" \
     io.thxnet.image.description="THXNET.: The Hybrid Next-Gen Blockchain Network"
 
-COPY --from=builder /build/target/release/thxnet-parachain-node /usr/local/bin
+COPY --from=builder /build/target/release/thxnet-leafchain /usr/local/bin
 
 RUN <<EOF
 #!/usr/bin/env bash
@@ -30,13 +30,13 @@ mkdir -p /data /leafchains/.local/share
 
 chown -R thxnet:thxnet /data
 
-ln -s /data /leafchains/.local/share/thxnet-parachain-node
+ln -s /data /leafchains/.local/share/thxnet-leafchain
 
 # unclutter and minimize the attack surface
 rm -rf /usr/bin /usr/sbin
 
 # check if executable works in this container
-/usr/local/bin/thxnet-parachain-node --version
+/usr/local/bin/thxnet-leafchain --version
 
 EOF
 
@@ -44,5 +44,5 @@ USER thxnet
 
 VOLUME ["/data"]
 
-ENTRYPOINT ["/usr/local/bin/thxnet-parachain-node"]
+ENTRYPOINT ["/usr/local/bin/thxnet-leafchain"]
 
