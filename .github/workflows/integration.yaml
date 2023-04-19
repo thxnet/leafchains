@@ -1,0 +1,84 @@
+name: Integration
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - release/*
+      - hotfix/*
+      - feature/*
+      - ci/*
+    tags:
+      - v*
+  pull_request:
+
+env:
+  CI: 1
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    name: Build and publish images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mode:
+          # NOTE: skip debug build because it takes too long
+          # - debug
+          - release
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "true"
+
+      - name: Install docker-buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: latest
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Setup container metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: 886360478228.dkr.ecr.us-west-2.amazonaws.com/thxnet/leafchain
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=edge
+            type=raw,enable=${{ github.event_name != 'pull_request' && !contains(github.ref, 'refs/tags/') }},value=build-{{date 'YYYY.MM.DD'}}-{{sha}}
+          flavor: |
+            latest=auto
+            suffix=${{ matrix.mode == 'debug' && '-debug' || ''}}
+          bake-target: leafchain
+
+      - name: Build container image
+        uses: docker/bake-action@v2
+        with:
+          pull: true
+          push: true
+          set: |
+            base.args.DEBUG=${{ matrix.mode == 'debug' && '1' || '0' }}
+          files: |
+            ./dev-support/containers/docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: leafchain
