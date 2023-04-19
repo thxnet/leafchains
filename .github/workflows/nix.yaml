@@ -36,4 +36,4 @@ jobs:
         run: nix build
 
       - name: Test executable
-        run: ./result/bin/thxnet-parachain-node --version
+        run: ./result/bin/thxnet-leafchain --version
