@@ -23,6 +23,10 @@ concurrency:
 jobs:
   image:
     name: Build and publish images
+    permissions:
+      id-token: write
+      contents: read
+
     runs-on: [self-hosted, linux, x64]
     strategy:
       fail-fast: false
