@@ -20,10 +20,15 @@ concurrency:
   group: image-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   image:
     name: Build and publish images
     runs-on: [self-hosted, linux, x64]
+
     strategy:
       fail-fast: false
       matrix:
