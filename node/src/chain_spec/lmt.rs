@@ -46,7 +46,7 @@ pub fn testnet_config() -> ChainSpec {
 
     ChainSpec::from_genesis(
         // Name
-        "Limitet Testnet",
+        "LimiteT Testnet",
         // ID
         "lmt_testnet",
         ChainType::Local,
