@@ -3,7 +3,7 @@ variable "TAG" {
 }
 
 variable "REPOSITORY" {
-    default = "886360478228.dkr.ecr.us-west-2.amazonaws.com/thxnet/leafchain"
+    default = "886360478228.dkr.ecr.us-west-2.amazonaws.com"
 }
 
 variable "DEBUG" {
