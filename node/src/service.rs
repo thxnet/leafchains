@@ -227,7 +227,7 @@ async fn start_node_impl(
         // own are probably a good idea. The requirements for a para-chain are
         // dictated by its relay-chain.
         if !SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench) && validator {
-            log::warn!(
+            tracing::warn!(
                 "⚠️  The hardware does not meet the minimal requirements for role 'Authority'."
             );
         }
@@ -329,10 +329,10 @@ fn build_import_queue(
             let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
             let slot =
-				sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-					*timestamp,
-					slot_duration,
-				);
+              sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
+            	  *timestamp,
+              	slot_duration,
+              );
 
             Ok((slot, timestamp))
         },

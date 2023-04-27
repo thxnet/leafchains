@@ -11580,7 +11580,6 @@ dependencies = [
  "general-runtime",
  "hex-literal",
  "jsonrpsee",
- "log",
  "pallet-asset-tx-payment",
  "pallet-assets",
  "pallet-transaction-payment-rpc",
@@ -11615,6 +11614,7 @@ dependencies = [
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
+ "tracing",
  "try-runtime-cli",
  "xcm",
 ]
