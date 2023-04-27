@@ -52,7 +52,7 @@ pub fn testnet_config() -> ChainSpec {
         "thx! token Testnet",
         // ID
         "thx_testnet",
-        ChainType::Local,
+        ChainType::Live,
         move || {
             testnet_genesis(
                 Some(root_key.clone()),
