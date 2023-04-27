@@ -15,8 +15,8 @@ use sp_runtime::traits::{AccountIdConversion, Block as BlockT};
 
 use crate::{
     chain_spec,
-    cli::{Cli, RelayChainCli, Subcommand},
-    service::{new_partial, ParachainNativeExecutor},
+    cli::{Cli, RootchainCli, Subcommand},
+    service::{new_partial, LeafchainNativeExecutor},
 };
 
 impl SubstrateCli for Cli {
@@ -52,7 +52,7 @@ impl SubstrateCli for Cli {
     }
 }
 
-impl SubstrateCli for RelayChainCli {
+impl SubstrateCli for RootchainCli {
     fn impl_name() -> String { "THXNET. Collator".into() }
 
     fn impl_version() -> String { env!("SUBSTRATE_CLI_IMPL_VERSION").into() }
@@ -73,7 +73,7 @@ impl SubstrateCli for RelayChainCli {
     fn copyright_start_year() -> i32 { 2023 }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-        polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id)
+        polkadot_cli::Cli::from_iter([RootchainCli::executable_name()].iter()).load_spec(id)
     }
 
     fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
@@ -130,9 +130,9 @@ pub fn run() -> Result<()> {
             let runner = cli.create_runner(cmd)?;
 
             runner.sync_run(|config| {
-                let polkadot_cli = RelayChainCli::new(
+                let polkadot_cli = RootchainCli::new(
                     &config,
-                    [RelayChainCli::executable_name()].iter().chain(cli.relay_chain_args.iter()),
+                    [RootchainCli::executable_name()].iter().chain(cli.rootchain_args.iter()),
                 );
 
                 let polkadot_config = SubstrateCli::create_configuration(
@@ -166,7 +166,7 @@ pub fn run() -> Result<()> {
             match cmd {
                 BenchmarkCmd::Pallet(cmd) => {
                     if cfg!(feature = "runtime-benchmarks") {
-                        runner.sync_run(|config| cmd.run::<Block, ParachainNativeExecutor>(config))
+                        runner.sync_run(|config| cmd.run::<Block, LeafchainNativeExecutor>(config))
                     } else {
                         Err("Benchmarking wasn't enabled when building the node. You can enable \
                              it with `--features runtime-benchmarks`."
@@ -224,7 +224,7 @@ pub fn run() -> Result<()> {
 
             runner.async_run(|_| {
                 Ok((
-                    cmd.run::<Block, HostFunctionsOf<ParachainNativeExecutor>, _>(Some(
+                    cmd.run::<Block, HostFunctionsOf<LeafchainNativeExecutor>, _>(Some(
                         info_provider,
                     )),
                     task_manager,
@@ -248,12 +248,12 @@ pub fn run() -> Result<()> {
                     .flatten();
 
                 let para_id = chain_spec::Extensions::try_get(&*config.chain_spec)
-                    .map(|e| e.para_id)
+                    .map(|e| e.leafchain_id)
                     .ok_or_else(|| "Could not find parachain ID in chain-spec.")?;
 
-                let polkadot_cli = RelayChainCli::new(
+                let polkadot_cli = RootchainCli::new(
                     &config,
-                    [RelayChainCli::executable_name()].iter().chain(cli.relay_chain_args.iter()),
+                    [RootchainCli::executable_name()].iter().chain(cli.rootchain_args.iter()),
                 );
 
                 let id = ParaId::from(para_id);
@@ -273,16 +273,15 @@ pub fn run() -> Result<()> {
                     SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, tokio_handle)
                         .map_err(|err| format!("Relay chain argument error: {}", err))?;
 
-                tracing::info!("Parachain id: {:?}", id);
-                tracing::info!("Parachain Account: {}", parachain_account);
-                tracing::info!("Parachain genesis state: {}", genesis_state);
+                tracing::info!("Leafchain id: {id:?}");
+                tracing::info!("Leafchain Account: {parachain_account}");
+                tracing::info!("Leafchain genesis state: {genesis_state}");
                 tracing::info!(
                     "Is collating: {}",
                     if config.role.is_authority() { "yes" } else { "no" }
                 );
 
-                if !collator_options.relay_chain_rpc_urls.is_empty()
-                    && cli.relay_chain_args.len() > 0
+                if !collator_options.relay_chain_rpc_urls.is_empty() && cli.rootchain_args.len() > 0
                 {
                     tracing::warn!(
                         "Detected relay chain node arguments together with --relay-chain-rpc-url. \
@@ -306,7 +305,7 @@ pub fn run() -> Result<()> {
     }
 }
 
-impl DefaultConfigurationValues for RelayChainCli {
+impl DefaultConfigurationValues for RootchainCli {
     fn p2p_listen_port() -> u16 { 30334 }
 
     fn rpc_ws_listen_port() -> u16 { 9945 }
@@ -316,7 +315,7 @@ impl DefaultConfigurationValues for RelayChainCli {
     fn prometheus_listen_port() -> u16 { 9616 }
 }
 
-impl CliConfiguration<Self> for RelayChainCli {
+impl CliConfiguration<Self> for RootchainCli {
     fn shared_params(&self) -> &SharedParams { self.base.base.shared_params() }
 
     fn import_params(&self) -> Option<&ImportParams> { self.base.base.import_params() }
@@ -357,7 +356,7 @@ impl CliConfiguration<Self> for RelayChainCli {
     where
         F: FnOnce(&mut sc_cli::LoggerBuilder, &sc_service::Configuration),
     {
-        unreachable!("PolkadotCli is never initialized; qed");
+        unreachable!("RootchainCli is never initialized; qed");
     }
 
     fn chain_id(&self, is_dev: bool) -> Result<String> {

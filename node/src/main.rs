@@ -1,4 +1,4 @@
-//! Substrate Parachain Node Template CLI
+//! THXNET. Leafchain Node
 
 #![warn(missing_docs)]
 
