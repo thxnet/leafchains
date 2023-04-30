@@ -11,7 +11,7 @@ edition.workspace = true
 [dependencies]
 hex-literal = "0.3.4"
 clap = { version = "4.1.8", features = ["derive"] }
-log = "0.4.17"
+tracing = "0.1"
 codec = { package = "parity-scale-codec", version = "3.0.0" }
 serde = { version = "1.0.152", features = ["derive"] }
 jsonrpsee = { version = "0.16.2", features = ["server"] }

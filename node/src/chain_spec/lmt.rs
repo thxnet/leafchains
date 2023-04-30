@@ -4,10 +4,12 @@ use sc_chain_spec::Properties;
 use sc_service::ChainType;
 use sp_core::crypto::UncheckedInto;
 
-use crate::chain_spec::{testnet_genesis, ChainSpec, Extensions, COLLATOR_STASH, RELAY_CHAIN_NAME};
+use crate::chain_spec::{
+    testnet_genesis, ChainSpec, Extensions, COLLATOR_STASH, ROOTCHAIN_TESTNET_NAME,
+};
 
 const ROOT_STASH: Balance = 72_000_000_000 * UNITS;
-const PARA_ID: u32 = 1001;
+const LEAFCHAIN_ID: u32 = 1001;
 
 pub fn testnet_config() -> ChainSpec {
     let mut properties = Properties::new();
@@ -15,7 +17,8 @@ pub fn testnet_config() -> ChainSpec {
     properties.insert("tokenDecimals".into(), 10.into());
     properties.insert("ss58Format".into(), 42.into());
 
-    let extension = Extensions { relay_chain: RELAY_CHAIN_NAME.to_string(), para_id: PARA_ID };
+    let extension =
+        Extensions { rootchain: ROOTCHAIN_TESTNET_NAME.to_string(), leafchain_id: LEAFCHAIN_ID };
 
     // 5GcBPgD5CjoRdzaCZUqDYLMUqWz62qZhjzdwZi1543mk9sid
     let root_key =
@@ -49,7 +52,7 @@ pub fn testnet_config() -> ChainSpec {
         "LimiteT Testnet",
         // ID
         "lmt_testnet",
-        ChainType::Local,
+        ChainType::Live,
         move || {
             testnet_genesis(
                 Some(root_key.clone()),
@@ -59,7 +62,7 @@ pub fn testnet_config() -> ChainSpec {
                 )],
                 // initial collators.
                 invulnerables.iter().map(|x| (x.0.clone(), COLLATOR_STASH, x.1.clone())).collect(),
-                PARA_ID.into(),
+                LEAFCHAIN_ID.into(),
             )
         },
         Vec::new(),

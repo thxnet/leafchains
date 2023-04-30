@@ -833,13 +833,13 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
         block: &Block,
         relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
     ) -> sp_inherents::CheckInherentsResult {
-        let relay_chain_slot = relay_state_proof
+        let rootchain_slot = relay_state_proof
             .read_slot()
-            .expect("Could not read the relay chain slot from the proof");
+            .expect("Could not read the rootchain slot from the proof");
 
         let inherent_data =
             cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-                relay_chain_slot,
+                rootchain_slot,
                 sp_std::time::Duration::from_secs(6),
             )
             .create_inherent_data()

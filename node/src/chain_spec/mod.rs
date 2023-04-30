@@ -12,16 +12,21 @@ pub type ChainSpec = sc_service::GenericChainSpec<general_runtime::GenesisConfig
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 const COLLATOR_STASH: Balance = 200 * UNITS;
-const RELAY_CHAIN_NAME: &str = "thxnet_testnet";
+
+// FIXME: use this constant
+#[allow(dead_code)]
+const ROOTCHAIN_MAINNET_NAME: &str = "thxnet";
+
+const ROOTCHAIN_TESTNET_NAME: &str = "thxnet_testnet";
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
 #[serde(deny_unknown_fields)]
 pub struct Extensions {
-    /// The relay chain of the Parachain.
-    pub relay_chain: String,
-    /// The id of the Parachain.
-    pub para_id: u32,
+    /// The rootchain of the leafchain.
+    pub rootchain: String,
+    /// The id of the leafchain.
+    pub leafchain_id: u32,
 }
 
 impl Extensions {

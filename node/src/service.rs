@@ -30,9 +30,9 @@ use sp_keystore::SyncCryptoStorePtr;
 use substrate_prometheus_endpoint::Registry;
 
 /// Native executor type.
-pub struct ParachainNativeExecutor;
+pub struct LeafchainNativeExecutor;
 
-impl sc_executor::NativeExecutionDispatch for ParachainNativeExecutor {
+impl sc_executor::NativeExecutionDispatch for LeafchainNativeExecutor {
     type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
     fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
@@ -42,13 +42,13 @@ impl sc_executor::NativeExecutionDispatch for ParachainNativeExecutor {
     fn native_version() -> sc_executor::NativeVersion { general_runtime::native_version() }
 }
 
-type ParachainExecutor = NativeElseWasmExecutor<ParachainNativeExecutor>;
+type LeafchainExecutor = NativeElseWasmExecutor<LeafchainNativeExecutor>;
 
-type ParachainClient = TFullClient<Block, RuntimeApi, ParachainExecutor>;
+type LeafchainClient = TFullClient<Block, RuntimeApi, LeafchainExecutor>;
 
-type ParachainBackend = TFullBackend<Block>;
+type LeafchainBackend = TFullBackend<Block>;
 
-type ParachainBlockImport = TParachainBlockImport<Block, Arc<ParachainClient>, ParachainBackend>;
+type LeafchainBlockImport = TParachainBlockImport<Block, Arc<LeafchainClient>, LeafchainBackend>;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -58,12 +58,12 @@ pub fn new_partial(
     config: &Configuration,
 ) -> Result<
     PartialComponents<
-        ParachainClient,
-        ParachainBackend,
+        LeafchainClient,
+        LeafchainBackend,
         (),
-        sc_consensus::DefaultImportQueue<Block, ParachainClient>,
-        sc_transaction_pool::FullPool<Block, ParachainClient>,
-        (ParachainBlockImport, Option<Telemetry>, Option<TelemetryWorkerHandle>),
+        sc_consensus::DefaultImportQueue<Block, LeafchainClient>,
+        sc_transaction_pool::FullPool<Block, LeafchainClient>,
+        (LeafchainBlockImport, Option<Telemetry>, Option<TelemetryWorkerHandle>),
     >,
     sc_service::Error,
 > {
@@ -78,7 +78,7 @@ pub fn new_partial(
         })
         .transpose()?;
 
-    let executor = ParachainExecutor::new(
+    let executor = LeafchainExecutor::new(
         config.wasm_method,
         config.default_heap_pages,
         config.max_runtime_instances,
@@ -108,7 +108,7 @@ pub fn new_partial(
         client.clone(),
     );
 
-    let block_import = ParachainBlockImport::new(client.clone(), backend.clone());
+    let block_import = LeafchainBlockImport::new(client.clone(), backend.clone());
 
     let import_queue = build_import_queue(
         client.clone(),
@@ -142,7 +142,7 @@ async fn start_node_impl(
     collator_options: CollatorOptions,
     para_id: ParaId,
     hwbench: Option<sc_sysinfo::HwBench>,
-) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
+) -> sc_service::error::Result<(TaskManager, Arc<LeafchainClient>)> {
     let parachain_config = prepare_node_config(parachain_config);
 
     let params = new_partial(&parachain_config)?;
@@ -152,7 +152,7 @@ async fn start_node_impl(
     let backend = params.backend.clone();
     let mut task_manager = params.task_manager;
 
-    let (relay_chain_interface, collator_key) = build_relay_chain_interface(
+    let (rootchain_interface, collator_key) = build_relay_chain_interface(
         polkadot_config,
         &parachain_config,
         telemetry_worker_handle,
@@ -176,7 +176,7 @@ async fn start_node_impl(
             transaction_pool: transaction_pool.clone(),
             para_id,
             spawn_handle: task_manager.spawn_handle(),
-            relay_chain_interface: relay_chain_interface.clone(),
+            relay_chain_interface: rootchain_interface.clone(),
             import_queue: params.import_queue,
         })
         .await?;
@@ -227,7 +227,7 @@ async fn start_node_impl(
         // own are probably a good idea. The requirements for a para-chain are
         // dictated by its relay-chain.
         if !SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench) && validator {
-            log::warn!(
+            tracing::warn!(
                 "⚠️  The hardware does not meet the minimal requirements for role 'Authority'."
             );
         }
@@ -249,7 +249,7 @@ async fn start_node_impl(
 
     let relay_chain_slot_duration = Duration::from_secs(6);
 
-    let overseer_handle = relay_chain_interface
+    let overseer_handle = rootchain_interface
         .overseer_handle()
         .map_err(|e| sc_service::Error::Application(Box::new(e)))?;
 
@@ -260,7 +260,7 @@ async fn start_node_impl(
             prometheus_registry.as_ref(),
             telemetry.as_ref().map(|t| t.handle()),
             &task_manager,
-            relay_chain_interface.clone(),
+            rootchain_interface.clone(),
             transaction_pool,
             sync_service,
             params.keystore_container.sync_keystore(),
@@ -275,7 +275,7 @@ async fn start_node_impl(
             announce_block,
             client: client.clone(),
             task_manager: &mut task_manager,
-            relay_chain_interface,
+            relay_chain_interface: rootchain_interface,
             spawner,
             parachain_consensus,
             import_queue: import_queue_service,
@@ -291,7 +291,7 @@ async fn start_node_impl(
             announce_block,
             task_manager: &mut task_manager,
             para_id,
-            relay_chain_interface,
+            relay_chain_interface: rootchain_interface,
             relay_chain_slot_duration,
             import_queue: import_queue_service,
             recovery_handle: Box::new(overseer_handle),
@@ -307,12 +307,12 @@ async fn start_node_impl(
 
 /// Build the import queue for the parachain runtime.
 fn build_import_queue(
-    client: Arc<ParachainClient>,
-    block_import: ParachainBlockImport,
+    client: Arc<LeafchainClient>,
+    block_import: LeafchainBlockImport,
     config: &Configuration,
     telemetry: Option<TelemetryHandle>,
     task_manager: &TaskManager,
-) -> Result<sc_consensus::DefaultImportQueue<Block, ParachainClient>, sc_service::Error> {
+) -> Result<sc_consensus::DefaultImportQueue<Block, LeafchainClient>, sc_service::Error> {
     let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client)?;
 
     cumulus_client_consensus_aura::import_queue::<
@@ -329,10 +329,10 @@ fn build_import_queue(
             let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
             let slot =
-				sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-					*timestamp,
-					slot_duration,
-				);
+              sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
+            	  *timestamp,
+              	slot_duration,
+              );
 
             Ok((slot, timestamp))
         },
@@ -344,13 +344,13 @@ fn build_import_queue(
 }
 
 fn build_consensus(
-    client: Arc<ParachainClient>,
-    block_import: ParachainBlockImport,
+    client: Arc<LeafchainClient>,
+    block_import: LeafchainBlockImport,
     prometheus_registry: Option<&Registry>,
     telemetry: Option<TelemetryHandle>,
     task_manager: &TaskManager,
     relay_chain_interface: Arc<dyn RelayChainInterface>,
-    transaction_pool: Arc<sc_transaction_pool::FullPool<Block, ParachainClient>>,
+    transaction_pool: Arc<sc_transaction_pool::FullPool<Block, LeafchainClient>>,
     sync_oracle: Arc<SyncingService<Block>>,
     keystore: SyncCryptoStorePtr,
     force_authoring: bool,
@@ -419,6 +419,6 @@ pub async fn start_parachain_node(
     collator_options: CollatorOptions,
     para_id: ParaId,
     hwbench: Option<sc_sysinfo::HwBench>,
-) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
+) -> sc_service::error::Result<(TaskManager, Arc<LeafchainClient>)> {
     start_node_impl(parachain_config, polkadot_config, collator_options, para_id, hwbench).await
 }
