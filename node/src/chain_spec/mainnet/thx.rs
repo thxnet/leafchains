@@ -4,9 +4,7 @@ use sc_chain_spec::Properties;
 use sc_service::ChainType;
 use sp_core::crypto::UncheckedInto;
 
-use crate::chain_spec::{
-    mainnet::mainnet_genesis, ChainSpec, Extensions, ROOTCHAIN_MAINNET_NAME,
-};
+use crate::chain_spec::{mainnet::mainnet_genesis, ChainSpec, Extensions, ROOTCHAIN_MAINNET_NAME};
 
 const ROOT_STASH: Balance = 50_000_000_000 * UNITS;
 const LEAFCHAIN_ID: u32 = 1000;
