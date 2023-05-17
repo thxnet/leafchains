@@ -1,5 +1,5 @@
-pub mod testnet;
 pub mod mainnet;
+pub mod testnet;
 
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde::{Deserialize, Serialize};
@@ -32,4 +32,3 @@ impl Extensions {
         sc_chain_spec::get_extension(chain_spec.extensions())
     }
 }
-
