@@ -5,56 +5,57 @@ use sc_service::ChainType;
 use sp_core::crypto::UncheckedInto;
 
 use crate::chain_spec::{
-    testnet_genesis, ChainSpec, Extensions, COLLATOR_STASH, ROOTCHAIN_TESTNET_NAME,
+    mainnet::mainnet_genesis, ChainSpec, Extensions, ROOTCHAIN_MAINNET_NAME,
 };
 
 const ROOT_STASH: Balance = 50_000_000_000 * UNITS;
 const LEAFCHAIN_ID: u32 = 1000;
+const COLLATOR_STASH: Balance = 200 * UNITS;
 
-pub fn testnet_config() -> ChainSpec {
+pub fn mainnet_config() -> ChainSpec {
     let mut properties = Properties::new();
-    properties.insert("tokenSymbol".into(), "DEV".into());
+    properties.insert("tokenSymbol".into(), "thx!".into());
     properties.insert("tokenDecimals".into(), 10.into());
     properties.insert("ss58Format".into(), 42.into());
 
     let extension =
-        Extensions { rootchain: ROOTCHAIN_TESTNET_NAME.to_string(), leafchain_id: LEAFCHAIN_ID };
+        Extensions { rootchain: ROOTCHAIN_MAINNET_NAME.to_string(), leafchain_id: LEAFCHAIN_ID };
 
-    // 5Dz8bZ69tXeUXSn4DdPUQy7N7TKhsae5pt5bnkrBR7sQ16Je
+    // 5G1JJF5dLcKFWmp6JQpX2hEXa94SJpakGwg3waaMTVito9UB
     let root_key =
-        AccountId::from(hex!["54fb8527957aa0c90898f92c111ea98d007f521feec101677f4f62f3cf5b512a"]);
+        AccountId::from(hex!["ae57e4083e13199fe977de0ccbdbecee0f5cfc841fceb1685f10ff8a46e0f811"]);
 
     let invulnerables: Vec<(AccountId, AuraId)> = vec![
         // a
         (
-            // 5Enuh6As7rwgMz1h6ua62wq9WT767nArNuByyTaXnucXUdvb
+            // 5F4ufcBdbAjVTND4XSgyx9jqkn2hS97EzZ6WRgjka1kqe6Qc
             AccountId::from(hex![
-                "78a89d10f59ebf0d9f938b16d9576862f6919e456e93f0d831b347d3f54b402e"
+                "84dc7437003587ba7629e5aa44c16950d1e364dcd9abe4c61fb548a83089ba16"
             ]),
-            // 5G8yCRS86GTBqy8bSAEWy7HCQmBREFiNk4Z7N7xnvM7kcp3P
-            hex!["b4318e70ac3a9faea1cdad887f61ca34b3f7fb016199ddf15cb840d113d07831"]
+            // 5Fja1rAb6msTeWYUVt3PohWK6zrSZ739AhxiVPnjk4cZjEN5
+            hex!["a258df9ed8ba3468f468cc3ac04c372aef8d2f8f1d825eaa9345d3156529ec22"]
                 .unchecked_into(),
         ),
         // b
         (
-            // 5E2796HJU4oBqwiUSPYBYVmP5vRt6y7VqrXUaS8EdzGJZrds
+            // 5HZ7eXgS5vorJad9BcxHW1jtzPP8mLhhFvo1dqbKpbLRfHcu
             AccountId::from(hex![
-                "567d1bd9721a4c4a18392ee24452d7df64887ad0b743567915a5c991abbfc94e"
+                "f2d8201031504bfd87b9c4f93fddbe0d8855b22100c7bf2c0ec80f12d788260c"
             ]),
-            // 5HTywmE7ag2aQUVkKSBxJcfciccXWGygEnp8FR5CTvxoYeXB
-            hex!["eeedf7d268584a93ddb3536a11f0be8af3803fd84e5719f445656732e5439546"]
+            // 5EANEcxgDL5WVqyWhUQSyPjzPgR4GGEgrRmEpkCUqcrX2TpB
+            hex!["5cc9e32e038fe57078af7770f81f6be2bf55240ede568b3f4529cd50a94a2957"]
                 .unchecked_into(),
         ),
     ];
 
     ChainSpec::from_genesis(
         // Name
-        "thx! token Testnet",
+        "thx! token Mainnet",
         // ID
-        "thx_testnet",
+        "thx_mainnet",
         ChainType::Live,
         move || {
-            testnet_genesis(
+            mainnet_genesis(
                 Some(root_key.clone()),
                 vec![(
                     root_key.clone(),

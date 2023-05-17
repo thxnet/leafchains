@@ -5,11 +5,12 @@ use sc_service::ChainType;
 use sp_core::crypto::UncheckedInto;
 
 use crate::chain_spec::{
-    testnet_genesis, ChainSpec, Extensions, COLLATOR_STASH, ROOTCHAIN_TESTNET_NAME,
+    testnet::testnet_genesis, ChainSpec, Extensions, ROOTCHAIN_TESTNET_NAME,
 };
 
 const ROOT_STASH: Balance = 72_000_000_000 * UNITS;
 const LEAFCHAIN_ID: u32 = 1001;
+const COLLATOR_STASH: Balance = 200 * UNITS;
 
 pub fn testnet_config() -> ChainSpec {
     let mut properties = Properties::new();
