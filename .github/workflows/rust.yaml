@@ -5,20 +5,13 @@ on:
     branches:
       - main
       - develop
-      - release/*
-      - hotfix/*
-      - feature/*
       - ci/*
+      - feat/*
+      - feature/*
+      - hotfix/*
+      - release/*
 
   pull_request:
-    paths:
-      - ".github/**"
-      - "src/**"
-      - Cargo.lock
-      - Cargo.toml
-      - deny.toml
-      - rust-toolchain.toml
-      - rustfmt.toml
 
 env:
   CARGO_TERM_COLOR: always

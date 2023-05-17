@@ -5,19 +5,13 @@ on:
     branches:
       - main
       - develop
-      - release/*
-      - hotfix/*
-      - feature/*
       - ci/*
+      - feat/*
+      - feature/*
+      - hotfix/*
+      - release/*
 
   pull_request:
-    paths:
-      - ".github/**"
-      - "src/**"
-      - Cargo.lock
-      - Cargo.toml
-      - flake.lock
-      - flake.nix
 
 jobs:
   build-nix-flake:
