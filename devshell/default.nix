@@ -1,6 +1,8 @@
 { rustToolchain
 , cargoArgs
 , unitTestArgs
+, lib
+, stdenv
 , pkgs
 , ...
 }:
@@ -38,6 +40,11 @@ pkgs.mkShell {
     shfmt
     nodePackages.prettier
     shellcheck
+  ] ++ lib.optionals stdenv.isDarwin [
+    iconv
+
+    darwin.apple_sdk.frameworks.Security
+    darwin.apple_sdk.frameworks.SystemConfiguration
   ];
 
   PROTOC = "${pkgs.protobuf}/bin/protoc";
