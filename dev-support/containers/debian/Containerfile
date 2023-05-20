@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.4
 
 # This is the build stage for THXNET. node. Here we create the binary in a temporary image.
-FROM 886360478228.dkr.ecr.us-west-2.amazonaws.com/ci-containers/substrate-based:build-2023.04.26-b6f17a1 as builder
+FROM ghcr.io/thxnet/ci-containers/substrate-based:build-2023.05.20-41956af as builder
 
 WORKDIR /build
 COPY . /build
@@ -15,7 +15,8 @@ LABEL description="Container image for THXNET." \
     io.thxnet.image.type="final" \
     io.thxnet.image.authors="contact@thxlab.io" \
     io.thxnet.image.vendor="thxlab.io" \
-    io.thxnet.image.description="THXNET.: The Hybrid Next-Gen Blockchain Network"
+    io.thxnet.image.description="THXNET.: The Hybrid Next-Gen Blockchain Network" \
+    org.opencontainers.image.source="https://github.com/thxnet/leafchains"
 
 COPY --from=builder /build/target/release/thxnet-leafchain /usr/local/bin
 
@@ -45,4 +46,3 @@ USER thxnet
 VOLUME ["/data"]
 
 ENTRYPOINT ["/usr/local/bin/thxnet-leafchain"]
-
