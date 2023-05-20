@@ -3,7 +3,7 @@ variable "TAG" {
 }
 
 variable "REPOSITORY" {
-    default = "886360478228.dkr.ecr.us-west-2.amazonaws.com"
+    default = "ghcr.io"
 }
 
 variable "DEBUG" {
