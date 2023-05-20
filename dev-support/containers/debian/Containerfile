@@ -19,31 +19,31 @@ LABEL description="Container image for THXNET." \
     org.opencontainers.image.source="https://github.com/thxnet/leafchains"
 
 
-COPY --from=builder /build/target/release/thxnet-leafchain /usr/local/bin
 
-RUN <<EOF
-#!/usr/bin/env bash
 
-set -eu
 
-useradd -m -u 1000 -U -s /bin/sh -d /leafchain thxnet
 
-mkdir -p /data /leafchain/.local/share
 
-chown -R thxnet:thxnet /data
 
-ln -s /data /leafchain/.local/share/thxnet-leafchain
 
-# unclutter and minimize the attack surface
-rm -rf /usr/bin /usr/sbin
 
-# check if executable works in this container
-/usr/local/bin/thxnet-leafchain --version
 
-EOF
 
-USER thxnet
 
-VOLUME ["/data"]
 
-ENTRYPOINT ["/usr/local/bin/thxnet-leafchain"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
