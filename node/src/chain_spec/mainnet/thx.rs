@@ -24,24 +24,26 @@ pub fn mainnet_config() -> ChainSpec {
         AccountId::from(hex!["ae57e4083e13199fe977de0ccbdbecee0f5cfc841fceb1685f10ff8a46e0f811"]);
 
     let invulnerables: Vec<(AccountId, AuraId)> = vec![
-        // a
         (
-            // 5F4ufcBdbAjVTND4XSgyx9jqkn2hS97EzZ6WRgjka1kqe6Qc
+            // a
+            // 5GxXcFqMWE2BrpjYVuH4V34sUjEbt6CnF5QZiERe3YpKJpVP
             AccountId::from(hex![
-                "84dc7437003587ba7629e5aa44c16950d1e364dcd9abe4c61fb548a83089ba16"
+                "d87732031b096246ca653c99875b28b3e8c31ba2b746efaddd7634cfd2f31933"
             ]),
-            // 5Fja1rAb6msTeWYUVt3PohWK6zrSZ739AhxiVPnjk4cZjEN5
-            hex!["a258df9ed8ba3468f468cc3ac04c372aef8d2f8f1d825eaa9345d3156529ec22"]
+            // a//aura
+            // 5DcRubWqTRQGryiuEaBAGLmRFvFZUp3hmoRJ1R7KCh5XbBou
+            hex!["446e653e4847155a782cccf12c28e2bdb0f465e46e408bb86e306aa3ee54126e"]
                 .unchecked_into(),
         ),
-        // b
         (
-            // 5HZ7eXgS5vorJad9BcxHW1jtzPP8mLhhFvo1dqbKpbLRfHcu
+            // b
+            // 5HKxBfwzYJZN5E212aPHHPpXoUVCgGenWk5TAMpaEpHuk16x
             AccountId::from(hex![
-                "f2d8201031504bfd87b9c4f93fddbe0d8855b22100c7bf2c0ec80f12d788260c"
+                "e8ce1459a5845060df05b8281d91b78c669f281e259da169d2c5702670659f44"
             ]),
-            // 5EANEcxgDL5WVqyWhUQSyPjzPgR4GGEgrRmEpkCUqcrX2TpB
-            hex!["5cc9e32e038fe57078af7770f81f6be2bf55240ede568b3f4529cd50a94a2957"]
+            // b//aura
+            // 5CQ6QpRHX9Pa93E87REwdoaevPe7zqVwBGJ2TTLHEimm8rgF
+            hex!["0ec9965539c01f0742e074f1fa117095a3984bacbe26073277b320d22912be02"]
                 .unchecked_into(),
         ),
     ];
