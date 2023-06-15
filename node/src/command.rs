@@ -41,8 +41,13 @@ impl SubstrateCli for Cli {
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
         Ok(match id {
+            // testnet
             "thx-testnet" => Box::new(chain_spec::testnet::thx::testnet_config()),
             "lmt-testnet" => Box::new(chain_spec::testnet::lmt::testnet_config()),
+            "txd-testnet" => Box::new(chain_spec::testnet::txd::testnet_config()),
+            "sand-testnet" => Box::new(chain_spec::testnet::sand::testnet_config()),
+
+            // mainnet
             "thx-mainnet" => Box::new(chain_spec::mainnet::thx::mainnet_config()),
             "lmt-mainnet" => Box::new(chain_spec::mainnet::lmt::mainnet_config()),
             path => Box::new(chain_spec::ChainSpec::from_json_file(PathBuf::from(path))?),
