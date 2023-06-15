@@ -1,31 +1,41 @@
 variable "TAG" {
-    default = "develop"
+  default = "develop"
 }
 
 variable "REPOSITORY" {
-    default = "ghcr.io"
+  default = "ghcr.io"
 }
 
 variable "DEBUG" {
-    default = "0"
+  default = "0"
 }
 
 group "default" {
-    targets = [
-        "leafchain",
-    ]
+  targets = [
+    "leafchain",
+    "leafchain-genesis",
+  ]
 }
 
 target "base" {
-    dockerfile = "dev-support/containers/debian/Containerfile"
-    args = {
-      DEBUG = "${DEBUG}"
-    }
-    platforms = ["linux/amd64"]
+  dockerfile = "dev-support/containers/debian/Containerfile"
+  args = {
+    DEBUG = "${DEBUG}"
+  }
+  platforms = ["linux/amd64"]
 }
 
 target "leafchain" {
-    inherits = ["base"]
-    target = "leafchain"
-    tags = ["${REPOSITORY}/thxnet/leafchain:${TAG}"]
+  inherits = ["base"]
+  target   = "leafchain"
+  tags     = ["${REPOSITORY}/thxnet/leafchain:${TAG}"]
+}
+
+target "leafchain-genesis" {
+  inherits = ["base"]
+  target   = "leafchain-genesis"
+  tags     = ["${REPOSITORY}/thxnet/leafchain-genesis:${TAG}"]
+  contexts = {
+    alpine = "docker-image://docker.io/alpine:3.18"
+  }
 }
