@@ -1,5 +1,7 @@
 pub mod lmt;
+pub mod sand;
 pub mod thx;
+pub mod txd;
 
 use cumulus_primitives_core::ParaId;
 use general_runtime::{AccountId, AuraId, Balance, UNITS};
