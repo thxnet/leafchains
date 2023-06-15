@@ -9,6 +9,7 @@
 
 let
   cargo-ext = pkgs.callPackage ./cargo-ext.nix { inherit cargoArgs unitTestArgs; };
+  chain-utils = pkgs.callPackage ./chain-utils.nix { };
 in
 pkgs.mkShell {
   name = "dev-shell";
@@ -25,6 +26,7 @@ pkgs.mkShell {
     cargo-udeps
     cargo-watch
     rustToolchain
+    chain-utils.build-specs-and-genesis
 
     tokei
 

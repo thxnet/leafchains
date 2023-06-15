@@ -56,7 +56,7 @@ jobs:
           version: latest
 
       - name: Setup container metadata
-        id: meta
+        id: meta-leafchain
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/leafchain
@@ -70,17 +70,41 @@ jobs:
             type=raw,enable=${{ github.event_name != 'pull_request' && !contains(github.ref, 'refs/tags/') }},value=build-{{date 'YYYY.MM.DD'}}-{{sha}}
           flavor: |
             latest=auto
-            suffix=${{ matrix.mode == 'debug' && '-debug' || ''}}
           bake-target: leafchain
+
+      - name: Setup container metadata
+        id: meta-leafchain-genesis
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/leafchain-genesis
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=edge
+            type=raw,enable=${{ github.event_name != 'pull_request' && !contains(github.ref, 'refs/tags/') }},value=build-{{date 'YYYY.MM.DD'}}-{{sha}}
+          flavor: |
+            latest=auto
+            suffix=-genesis
+          bake-target: leafchain-genesis
+
+      - name: Merge container metadata
+        run: |
+          jq 'reduce inputs as $in (.; . * $in)' \
+            ${{ steps.meta-leafchain.outputs.bake-file }} \
+            ${{ steps.meta-leafchain-genesis.outputs.bake-file }} > /tmp/bake-metadata.json
 
       - name: Build container image
         uses: docker/bake-action@v3
         with:
           pull: true
           push: true
-          set: |
-            base.args.DEBUG=${{ matrix.mode == 'debug' && '1' || '0' }}
           files: |
             ./dev-support/containers/docker-bake.hcl
-            ${{ steps.meta.outputs.bake-file }}
-          targets: leafchain
+            /tmp/bake-metadata.json
+
+      - name: Clean container metadata
+        run: |
+          rm /tmp/bake-metadata.json
