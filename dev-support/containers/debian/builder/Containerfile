@@ -1,0 +1,62 @@
+# syntax=docker/dockerfile:1.4
+
+FROM substrate-based as builder
+
+WORKDIR /build
+COPY . /build
+
+RUN cargo build --locked --release
+
+RUN <<EOF
+#!/usr/bin/env bash
+
+set -eu
+
+declare -A chain_specs
+
+chain_specs+=(
+  ["thx-mainnet"]="mainnet.leafchain.thx"
+  ["lmt-mainnet"]="mainnet.leafchain.lmt"
+
+  ["thx-testnet"]="testnet.leafchain.thx"
+  ["lmt-testnet"]="testnet.leafchain.lmt"
+  ["txd-testnet"]="testnet.leafchain.txd"
+  ["sand-testnet"]="testnet.leafchain.sand"
+)
+
+mkdir -pv "/chain-specs"
+mkdir -pv "/genesis-data"
+
+for name in ${!chain_specs[@]}; do
+  chain_spec_file_name="/chain-specs/${chain_specs[$name]}.raw.json"
+  genesis_state_file="/genesis-data/${chain_specs[$name]}.genesis-state"
+  genesis_wasm_file="/genesis-data/${chain_specs[$name]}.genesis-wasm"
+
+  /build/target/release/thxnet-leafchain \
+    build-spec \
+      --disable-default-bootnode \
+      --log=error \
+      --chain="$name" >"$chain_spec_file_name.origin"
+
+  /build/target/release/thxnet-leafchain \
+    build-spec \
+      --disable-default-bootnode \
+      --log=error \
+      --raw \
+      --chain="$chain_spec_file_name.origin" >"$chain_spec_file_name"
+
+  rm -v "$chain_spec_file_name.origin"
+
+  /build/target/release/thxnet-leafchain \
+    export-genesis-state \
+      --chain="$name" \
+      --log=error > $genesis_state_file
+
+  /build/target/release/thxnet-leafchain \
+    export-genesis-wasm \
+      --chain="$name" \
+      --log=error > $genesis_wasm_file
+
+done
+
+EOF
