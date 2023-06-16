@@ -87,7 +87,6 @@ jobs:
             type=raw,enable=${{ github.event_name != 'pull_request' && !contains(github.ref, 'refs/tags/') }},value=build-{{date 'YYYY.MM.DD'}}-{{sha}}
           flavor: |
             latest=auto
-            suffix=-genesis
           bake-target: leafchain-genesis
 
       - name: Merge container metadata
