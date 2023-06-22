@@ -30,8 +30,8 @@ pkgs.mkShell {
 
     tokei
 
-    llvmPackages.clang
-    llvmPackages.libclang
+    llvmPackages_15.clang
+    llvmPackages_15.libclang
 
     protobuf
 
@@ -52,7 +52,7 @@ pkgs.mkShell {
   PROTOC = "${pkgs.protobuf}/bin/protoc";
   PROTOC_INCLUDE = "${pkgs.protobuf}/include";
 
-  LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+  LIBCLANG_PATH = "${pkgs.llvmPackages_15.libclang.lib}/lib";
 
   shellHook = ''
     export NIX_PATH="nixpkgs=${pkgs.path}"
