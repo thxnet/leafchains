@@ -21,8 +21,7 @@ target "builder" {
   dockerfile = "dev-support/containers/debian/builder/Containerfile"
   target     = "builder"
   contexts = {
-    sccache         = "docker-image://ghcr.io/thxnet/ci-containers/sccache:0.5.4"
-    substrate-based = "docker-image://ghcr.io/thxnet/ci-containers/substrate-based:build-2023.05.20-41956af"
+    substrate-based = "docker-image://ghcr.io/thxnet/ci-containers/substrate-based:build-2023.06.30-bd9d7aa"
   }
   args = {
     DEBUG                 = "${DEBUG}"
