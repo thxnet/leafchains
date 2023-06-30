@@ -1,9 +1,20 @@
 # syntax=docker/dockerfile:1.4
 
-FROM substrate-based as builder
+FROM sccache AS sccache
+
+FROM substrate-based AS builder
+
+COPY --from=sccache /usr/bin/sccache /usr/bin/sccache
 
 WORKDIR /build
 COPY . /build
+
+ARG RUSTC_WRAPPER="/usr/bin/sccache"
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG SCCACHE_BUCKET
+ARG SCCACHE_ENDPOINT
+ARG SCCACHE_S3_USE_SSL
 
 RUN cargo build --locked --release
 

@@ -2,8 +2,8 @@ variable "TAG" {
   default = "develop"
 }
 
-variable "REPOSITORY" {
-  default = "ghcr.io"
+variable "CONTAINER_REGISTRY" {
+  default = "ghcr.io/thxnet"
 }
 
 variable "DEBUG" {
@@ -21,10 +21,17 @@ target "builder" {
   dockerfile = "dev-support/containers/debian/builder/Containerfile"
   target     = "builder"
   contexts = {
+    sccache         = "docker-image://ghcr.io/thxnet/ci-containers/sccache:0.5.4"
     substrate-based = "docker-image://ghcr.io/thxnet/ci-containers/substrate-based:build-2023.05.20-41956af"
   }
   args = {
-    DEBUG = "${DEBUG}"
+    DEBUG                 = "${DEBUG}"
+    RUSTC_WRAPPER         = "/usr/bin/sccache"
+    AWS_ACCESS_KEY_ID     = null
+    AWS_SECRET_ACCESS_KEY = null
+    SCCACHE_BUCKET        = null
+    SCCACHE_ENDPOINT      = null
+    SCCACHE_S3_USE_SSL    = null
   }
   platforms = ["linux/amd64"]
 }
@@ -32,7 +39,7 @@ target "builder" {
 target "leafchain" {
   dockerfile = "dev-support/containers/debian/leafchain/Containerfile"
   target     = "leafchain"
-  tags       = ["${REPOSITORY}/thxnet/leafchain:${TAG}"]
+  tags       = ["${CONTAINER_REGISTRY}/leafchain:${TAG}"]
   contexts = {
     builder = "target:builder"
     alpine  = "docker-image://docker.io/library/ubuntu:22.04"
@@ -51,7 +58,7 @@ target "leafchain" {
 target "leafchain-genesis" {
   dockerfile = "dev-support/containers/debian/leafchain-genesis/Containerfile"
   target     = "leafchain-genesis"
-  tags       = ["${REPOSITORY}/thxnet/leafchain-genesis:${TAG}"]
+  tags       = ["${CONTAINER_REGISTRY}/leafchain-genesis:${TAG}"]
   contexts = {
     builder = "target:builder"
     alpine  = "docker-image://docker.io/alpine:3.18"
