@@ -17,6 +17,10 @@ on:
 env:
   CI: 1
   REGISTRY: ghcr.io
+  MINIO_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+  MINIO_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
+  SCCACHE_BUCKET: sccache
+  SCCACHE_ENDPOINT: ${{ secrets.SCCACHE_ENDPOINT }}
 
 concurrency:
   group: image-${{ github.ref }}
@@ -100,6 +104,13 @@ jobs:
         with:
           pull: true
           push: true
+          set: |
+            builder.args.AWS_ACCESS_KEY_ID=${{ env.MINIO_ACCESS_KEY_ID }}
+            builder.args.AWS_SECRET_ACCESS_KEY=${{ env.MINIO_SECRET_ACCESS_KEY }}
+            builder.args.SCCACHE_BUCKET=${{ env.SCCACHE_BUCKET }}
+            builder.args.SCCACHE_ENDPOINT=${{ env.SCCACHE_ENDPOINT }}
+            builder.args.SCCACHE_S3_USE_SSL=false
+
           files: |
             ./dev-support/containers/docker-bake.hcl
             /tmp/bake-metadata.json
