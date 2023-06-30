@@ -1,10 +1,6 @@
 # syntax=docker/dockerfile:1.4
 
-FROM sccache AS sccache
-
 FROM substrate-based AS builder
-
-COPY --from=sccache /usr/bin/sccache /usr/bin/sccache
 
 WORKDIR /build
 COPY . /build
