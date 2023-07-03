@@ -6,6 +6,7 @@ use crate::{AccountId, Assets, Runtime};
 /// A `HandleCredit` implementation that naively transfers the fees to the block
 /// author. Will drop and burn the assets in case the transfer fails.
 pub struct CreditToBlockAuthor;
+
 impl HandleCredit<AccountId, Assets> for CreditToBlockAuthor {
     fn handle_credit(credit: CreditOf<AccountId, Assets>) {
         if let Some(author) = pallet_authorship::Pallet::<Runtime>::author() {

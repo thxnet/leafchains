@@ -1,0 +1,4 @@
+FROM alpine as leafchain-genesis
+
+COPY --from=builder /chain-specs /chain-specs
+COPY --from=builder /genesis-data /genesis-data

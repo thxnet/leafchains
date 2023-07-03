@@ -1,12 +1,11 @@
 {
-  description = "THXNET Parachain";
+  description = "THXNET. Leafchains";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     fenix = {
-      # nightly-2023-04-10
-      url = "github:nix-community/fenix?ref=4869bb2408e6778840c8d00be4b45d8353f24723";
+      url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     crane = {
@@ -17,7 +16,7 @@
 
   outputs = { self, nixpkgs, flake-utils, fenix, crane }:
     let
-      name = "thxnet-parachain-node";
+      name = "thxnet-leafchains";
       version = "0.1.0";
     in
     (flake-utils.lib.eachDefaultSystem
@@ -31,15 +30,10 @@
             ];
           };
 
-          rustToolchain = (with fenix.packages.${system}; combine [
-            complete.cargo
-            complete.rustc
-            complete.clippy
-            complete.rust-src
-            complete.rustfmt
-
-            targets.wasm32-unknown-unknown.latest.rust-std
-          ]);
+          rustToolchain = fenix.packages.${system}.fromToolchainFile {
+            file = ./rust-toolchain.toml;
+            sha256 = "sha256-DCQf3SCznJP8yCYJ4Vziqq3KZkacs+PrWkCir6y3tGA=";
+          };
 
           rustPlatform = pkgs.makeRustPlatform {
             cargo = rustToolchain;
@@ -64,6 +58,19 @@
           src = craneLib.cleanCargoSource (craneLib.path ./.);
           commonArgs = {
             inherit src;
+
+            nativeBuildInputs = with pkgs; [
+              llvmPackages.clang
+              llvmPackages.libclang
+            ];
+
+            PROTOC = "${pkgs.protobuf}/bin/protoc";
+            PROTOC_INCLUDE = "${pkgs.protobuf}/include";
+
+            LIBCLANG_PATH = "${pkgs.llvmPackages.libclang.lib}/lib";
+
+            SUBSTRATE_CLI_GIT_COMMIT_HASH = "";
+            SKIP_WASM_BUILD = "true";
           };
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
         in
@@ -75,18 +82,18 @@
           };
 
           packages = rec {
-            default = thxnet-parachain-node;
-            thxnet-parachain-node = pkgs.callPackage ./devshell/package.nix {
+            default = thxnet-leafchain;
+            thxnet-leafchain = pkgs.callPackage ./devshell/package.nix {
               inherit name version rustPlatform;
             };
             container = pkgs.callPackage ./devshell/container.nix {
-              inherit name version thxnet-parachain-node;
+              inherit name version thxnet-leafchain;
             };
           };
 
           apps.default = flake-utils.lib.mkApp {
-            drv = packages.thxnet-parachain-node;
-            exePath = "/bin/thxnet-parachain-node";
+            drv = packages.thxnet-leafchain;
+            exePath = "/bin/thxnet-leafchain";
           };
 
           checks = {
@@ -108,7 +115,7 @@
           };
         })) // {
       overlays.default = final: prev: {
-        thxnet-parachain-node = final.callPackage ./devshell/package.nix {
+        thxnet-leafchain = final.callPackage ./devshell/package.nix {
           inherit name version;
         };
       };

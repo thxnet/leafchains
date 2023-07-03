@@ -30,6 +30,3 @@ rustflags = [
   "-Aclippy::derivable_impls",           # false positives
   "-Aclippy::stable_sort_primitive",     # prefer stable sort
 ]
-
-[build]
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]

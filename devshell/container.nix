@@ -1,7 +1,7 @@
 { name
 , version
 , dockerTools
-, thxnet-parachain-node
+, thxnet-leafchain
 , buildEnv
 , ...
 }:
@@ -12,11 +12,11 @@ dockerTools.buildImage {
 
   copyToRoot = buildEnv {
     name = "image-root";
-    paths = [ thxnet-parachain-node ];
+    paths = [ thxnet-leafchain ];
     pathsToLink = [ "/bin" ];
   };
 
   config = {
-    Entrypoint = [ "${thxnet-parachain-node}/bin/thxnet-parachain-node" ];
+    Entrypoint = [ "${thxnet-leafchain}/bin/thxnet-leafchain" ];
   };
 }

@@ -1,0 +1,120 @@
+name: Integration
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - ci/*
+      - feat/*
+      - feature/*
+      - hotfix/*
+      - release/*
+    tags:
+      - v*
+  pull_request:
+
+env:
+  CI: 1
+  REGISTRY: ghcr.io
+  MINIO_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+  MINIO_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
+  SCCACHE_BUCKET: sccache
+  SCCACHE_ENDPOINT: ${{ secrets.SCCACHE_ENDPOINT }}
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    name: Build and publish images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        mode:
+          # NOTE: skip debug build because it takes too long
+          # - debug
+          - release
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "true"
+
+      - name: Login to the GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install docker-buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: latest
+
+      - name: Setup container metadata
+        id: meta-leafchain
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/leafchain
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=edge
+            type=raw,enable=${{ github.event_name != 'pull_request' && !contains(github.ref, 'refs/tags/') }},value=build-{{date 'YYYY.MM.DD'}}-{{sha}}
+          flavor: |
+            latest=auto
+          bake-target: leafchain
+
+      - name: Setup container metadata
+        id: meta-leafchain-genesis
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/leafchain-genesis
+          tags: |
+            type=schedule
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=edge
+            type=raw,enable=${{ github.event_name != 'pull_request' && !contains(github.ref, 'refs/tags/') }},value=build-{{date 'YYYY.MM.DD'}}-{{sha}}
+          flavor: |
+            latest=auto
+          bake-target: leafchain-genesis
+
+      - name: Merge container metadata
+        run: |
+          jq 'reduce inputs as $in (.; . * $in)' \
+            ${{ steps.meta-leafchain.outputs.bake-file }} \
+            ${{ steps.meta-leafchain-genesis.outputs.bake-file }} > /tmp/bake-metadata.json
+
+      - name: Build container image
+        uses: docker/bake-action@v3
+        with:
+          pull: true
+          push: true
+          set: |
+            builder.args.AWS_ACCESS_KEY_ID=${{ env.MINIO_ACCESS_KEY_ID }}
+            builder.args.AWS_SECRET_ACCESS_KEY=${{ env.MINIO_SECRET_ACCESS_KEY }}
+            builder.args.SCCACHE_BUCKET=${{ env.SCCACHE_BUCKET }}
+            builder.args.SCCACHE_ENDPOINT=${{ env.SCCACHE_ENDPOINT }}
+            builder.args.SCCACHE_S3_USE_SSL=false
+
+          files: |
+            ./dev-support/containers/docker-bake.hcl
+            /tmp/bake-metadata.json
+
+      - name: Clean container metadata
+        run: |
+          rm /tmp/bake-metadata.json

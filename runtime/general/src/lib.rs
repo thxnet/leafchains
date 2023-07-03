@@ -26,9 +26,6 @@ use frame_system::{
     EnsureRoot, EnsureSigned,
 };
 use pallet_nfts::PalletFeatures;
-/// Import the template pallet.
-pub use pallet_template;
-// Polkadot imports
 use polkadot_runtime_common::{BlockHashCount, SlowAdjustingFeeUpdate};
 use sp_api::impl_runtime_apis;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -127,11 +124,6 @@ pub type Executive = frame_executive::Executive<
     AllPalletsWithSystem,
 >;
 
-impl pallet_sudo::Config for Runtime {
-    type RuntimeCall = RuntimeCall;
-    type RuntimeEvent = RuntimeEvent;
-}
-
 /// Opaque types. These are used by the CLI to instantiate machinery that don't
 /// need to know the specifics of the runtime. They can then be made to be
 /// agnostic over specific formats of data like extrinsics, allowing for them to
@@ -158,8 +150,8 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: create_runtime_str!("thxnet-parachain"),
-    impl_name: create_runtime_str!("thxnet-parachain"),
+    spec_name: create_runtime_str!("thxnet-general-runtime"),
+    impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
     spec_version: 1,
     impl_version: 0,
@@ -420,9 +412,27 @@ impl pallet_collator_selection::Config for Runtime {
     type WeightInfo = ();
 }
 
-/// Configure the pallet template in pallets/template.
-impl pallet_template::Config for Runtime {
+impl pallet_sudo::Config for Runtime {
+    type RuntimeCall = RuntimeCall;
     type RuntimeEvent = RuntimeEvent;
+}
+
+parameter_types! {
+    // One storage item; key size is 32; value is size 4+4+16+32 bytes = 56 bytes.
+    pub const DepositBase: Balance = deposit(1, 88);
+    // Additional storage item size of 32 bytes.
+    pub const DepositFactor: Balance = deposit(0, 32);
+    pub const MaxSignatories: u32 = 100;
+}
+
+impl pallet_multisig::Config for Runtime {
+    type Currency = Balances;
+    type DepositBase = DepositBase;
+    type DepositFactor = DepositFactor;
+    type MaxSignatories = MaxSignatories;
+    type RuntimeCall = RuntimeCall;
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_multisig::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -520,6 +530,9 @@ construct_runtime!(
         ParachainInfo: parachain_info = 3,
         Utility: pallet_utility = 4,
 
+        // Multisig dispatch.
+        Multisig: pallet_multisig = 5,
+
         // Monetary stuff.
         Balances: pallet_balances = 10,
         TransactionPayment: pallet_transaction_payment = 11,
@@ -540,8 +553,6 @@ construct_runtime!(
         CumulusXcm: cumulus_pallet_xcm = 32,
         DmpQueue: cumulus_pallet_dmp_queue = 33,
 
-        // Template
-        TemplatePallet: pallet_template = 40,
         Sudo: pallet_sudo = 255,
     }
 );
@@ -553,6 +564,7 @@ mod benches {
         [pallet_utility, Utility]
         [pallet_balances, Balances]
         [pallet_assets, Assets]
+        [pallet_multisig, Multisig]
         [pallet_nfts, Nfts]
         [pallet_session, SessionBench::<Runtime>]
         [pallet_timestamp, Timestamp]
@@ -821,13 +833,13 @@ impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
         block: &Block,
         relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
     ) -> sp_inherents::CheckInherentsResult {
-        let relay_chain_slot = relay_state_proof
+        let rootchain_slot = relay_state_proof
             .read_slot()
-            .expect("Could not read the relay chain slot from the proof");
+            .expect("Could not read the rootchain slot from the proof");
 
         let inherent_data =
             cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-                relay_chain_slot,
+                rootchain_slot,
                 sp_std::time::Duration::from_secs(6),
             )
             .create_inherent_data()
