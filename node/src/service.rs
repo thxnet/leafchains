@@ -358,13 +358,15 @@ fn build_consensus(
 ) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error> {
     let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client)?;
 
-    let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+    let mut proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
         task_manager.spawn_handle(),
         client.clone(),
         transaction_pool,
         prometheus_registry,
         telemetry.clone(),
     );
+    proposer_factory.set_default_block_size_limit(30 * 1024 * 1024);
+    proposer_factory.set_soft_deadline(sp_runtime::Percent::from_percent(75));
 
     let params = BuildAuraConsensusParams {
         proposer_factory,
