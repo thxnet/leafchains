@@ -153,7 +153,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("thxnet-general-runtime"),
     impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
-    spec_version: 3,
+    spec_version: 4,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -169,7 +169,7 @@ const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(5);
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 /// We allow for 2.5 of a second of compute with a 12 second average block time.
-/// We fix proof size at 300MiB.
+/// We fix proof size at 30MiB.
 const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
     WEIGHT_REF_TIME_PER_SECOND.saturating_mul(5).saturating_div(2),
     60 * cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
@@ -190,7 +190,7 @@ parameter_types! {
     // `DeletionWeightLimit` and `DeletionQueueDepth` depend on those to parameterize
     // the lazy contract deletion.
     pub RuntimeBlockLength: BlockLength =
-        BlockLength::max_with_normal_ratio(300 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+        BlockLength::max_with_normal_ratio(30 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
     pub RuntimeBlockWeights: BlockWeights = BlockWeights::builder()
         .base_block(BlockExecutionWeight::get())
         .for_class(DispatchClass::all(), |weights| {
