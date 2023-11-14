@@ -153,7 +153,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("thxnet-general-runtime"),
     impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
-    spec_version: 8,
+    spec_version: 9,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -164,9 +164,9 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 /// handlers. This is used to limit the maximal weight of a single extrinsic.
 const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_percent(5);
 
-/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be
+/// We allow `Normal` extrinsics to fill up the block up to 85%, the rest can be
 /// used by `Operational` extrinsics.
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(85);
 
 /// We allow for 0.5 of a second of compute with a 12 second average block time.
 /// We fix proof size at 50MiB.
