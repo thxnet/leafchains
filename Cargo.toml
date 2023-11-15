@@ -2,10 +2,7 @@
 panic = "unwind"
 
 [workspace]
-members = [
-   "node",
-   "runtime/general",
-]
+members = ["node", "pallets/nfts", "runtime/general"]
 
 [workspace.package]
 version = "0.1.0"
