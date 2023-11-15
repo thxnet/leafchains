@@ -365,8 +365,8 @@ fn build_consensus(
         prometheus_registry,
         telemetry.clone(),
     );
-    proposer_factory.set_default_block_size_limit(30 * 1024 * 1024);
-    proposer_factory.set_soft_deadline(sp_runtime::Percent::from_percent(75));
+    proposer_factory.set_default_block_size_limit(50 * 1024 * 1024);
+    proposer_factory.set_soft_deadline(sp_runtime::Percent::from_percent(90));
 
     let params = BuildAuraConsensusParams {
         proposer_factory,
