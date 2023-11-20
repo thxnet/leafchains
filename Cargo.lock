@@ -3109,7 +3109,7 @@ dependencies = [
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-multisig",
- "pallet-nfts",
+ "pallet-nfts 4.0.0-dev",
  "pallet-nfts-runtime-api",
  "pallet-session",
  "pallet-sudo",
@@ -5913,6 +5913,25 @@ dependencies = [
 [[package]]
 name = "pallet-nfts"
 version = "4.0.0-dev"
+dependencies = [
+ "enumflags2",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-keystore",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-nfts"
+version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40#76fed9b9082daade5392663f25ed8968f8e8c11c"
 dependencies = [
  "enumflags2",
@@ -5934,7 +5953,7 @@ version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40#76fed9b9082daade5392663f25ed8968f8e8c11c"
 dependencies = [
  "frame-support",
- "pallet-nfts",
+ "pallet-nfts 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40)",
  "parity-scale-codec",
  "sp-api",
 ]
