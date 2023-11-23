@@ -1941,7 +1941,39 @@ pub mod pallet {
             ensure!(signature.verify(&*msg, &signer), Error::<T, I>::WrongSignature);
             Self::do_set_attributes_pre_signed(origin, data, signer)
         }
+
+        #[pallet::call_index(39)]
+        #[pallet::weight((
+            T::WeightInfo::bulk_force_mint(),
+            DispatchClass::Operational,
+            Pays::No,
+        ))]
+        pub fn bulk_force_mint(
+            origin: OriginFor<T>,
+            collection: T::CollectionId,
+            items_and_mint_to: Vec<(T::ItemId, AccountIdLookupOf<T>)>,
+        ) -> DispatchResult {
+            let maybe_check_origin = T::ForceOrigin::try_origin(origin)
+                .map(|_| None)
+                .or_else(|origin| ensure_signed(origin).map(Some).map_err(DispatchError::from))?;
+
+            if let Some(check_origin) = maybe_check_origin {
+                ensure!(
+                    Self::has_role(&collection, &check_origin, CollectionRole::Issuer),
+                    Error::<T, I>::NoPermission
+                );
+            }
+
+            let item_config =
+                ItemConfig { settings: Self::get_default_item_settings(&collection)? };
+
+            for (item, mint_to) in items_and_mint_to {
+                let mint_to = T::Lookup::lookup(mint_to)?;
+                Self::do_mint(collection, item, None, mint_to, item_config, |_, _| Ok(()))?;
+            }
+
+            Ok(())
+        }
     }
 }
-
 sp_core::generate_feature_enabled_macro!(runtime_benchmarks_enabled, feature = "runtime-benchmarks", $);

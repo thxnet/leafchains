@@ -54,6 +54,7 @@ pub trait WeightInfo {
 	fn destroy(m: u32, c: u32, a: u32, ) -> Weight;
 	fn mint() -> Weight;
 	fn force_mint() -> Weight;
+	fn bulk_force_mint() -> Weight ;
 	fn burn() -> Weight;
 	fn transfer() -> Weight;
 	fn redeposit(i: u32, ) -> Weight;
@@ -208,6 +209,20 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
+
+  ///
+  ///
+	fn bulk_force_mint() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `453`
+		//  Estimated: `18460`
+		// Minimum execution time: 47_393_000 picoseconds.
+		Weight::from_parts(47_906_000, 18460)
+			.saturating_add(T::DbWeight::get().reads(5_u64))
+			.saturating_add(T::DbWeight::get().writes(4_u64))
+	}
+
+
 	/// Storage: Nfts ItemConfigOf (r:1 w:1)
 	/// Proof: Nfts ItemConfigOf (max_values: None, max_size: Some(48), added: 2523, mode: MaxEncodedLen)
 	/// Storage: Nfts Collection (r:1 w:1)
@@ -887,6 +902,19 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(5_u64))
 			.saturating_add(RocksDbWeight::get().writes(4_u64))
 	}
+
+  ///
+  ///
+	fn bulk_force_mint() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `453`
+		//  Estimated: `18460`
+		// Minimum execution time: 47_393_000 picoseconds.
+		Weight::from_parts(47_906_000, 18460)
+			.saturating_add(RocksDbWeight::get().reads(5_u64))
+			.saturating_add(RocksDbWeight::get().writes(4_u64))
+	}
+
 	/// Storage: Nfts ItemConfigOf (r:1 w:1)
 	/// Proof: Nfts ItemConfigOf (max_values: None, max_size: Some(48), added: 2523, mode: MaxEncodedLen)
 	/// Storage: Nfts Collection (r:1 w:1)
