@@ -757,10 +757,10 @@ pub mod pallet {
         /// - `a = witness.attributes`
         #[pallet::call_index(2)]
         #[pallet::weight(T::WeightInfo::destroy(
-			witness.item_metadatas,
-			witness.item_configs,
-			witness.attributes,
- 		))]
+            witness.item_metadatas,
+            witness.item_configs,
+            witness.attributes,
+        ))]
         pub fn destroy(
             origin: OriginFor<T>,
             collection: T::CollectionId,
@@ -1530,8 +1530,8 @@ pub mod pallet {
         /// Emits `ItemAttributesApprovalRemoved` on success.
         #[pallet::call_index(23)]
         #[pallet::weight(T::WeightInfo::cancel_item_attributes_approval(
-			witness.account_attributes
-		))]
+            witness.account_attributes
+        ))]
         pub fn cancel_item_attributes_approval(
             origin: OriginFor<T>,
             collection: T::CollectionId,
@@ -1952,6 +1952,7 @@ pub mod pallet {
             origin: OriginFor<T>,
             collection: T::CollectionId,
             items_and_mint_to: Vec<(T::ItemId, AccountIdLookupOf<T>)>,
+            item_config: ItemConfig,
         ) -> DispatchResult {
             let maybe_check_origin = T::ForceOrigin::try_origin(origin)
                 .map(|_| None)
@@ -1964,12 +1965,72 @@ pub mod pallet {
                 );
             }
 
-            let item_config =
-                ItemConfig { settings: Self::get_default_item_settings(&collection)? };
-
             for (item, mint_to) in items_and_mint_to {
                 let mint_to = T::Lookup::lookup(mint_to)?;
                 Self::do_mint(collection, item, None, mint_to, item_config, |_, _| Ok(()))?;
+            }
+
+            Ok(())
+        }
+
+        #[pallet::call_index(40)]
+        #[pallet::weight((
+            T::WeightInfo::transfer(),
+            DispatchClass::Operational,
+            Pays::No,
+        ))]
+        pub fn bulk_force_transfer(
+            origin: OriginFor<T>,
+            collection_and_item_and_dests: Vec<(T::CollectionId, T::ItemId, AccountIdLookupOf<T>)>,
+        ) -> DispatchResult {
+            let maybe_check_origin = T::ForceOrigin::try_origin(origin)
+                .map(|_| None)
+                .or_else(|origin| ensure_signed(origin).map(Some).map_err(DispatchError::from))?;
+
+            // check if item exists
+            for (collection, item, _dest) in collection_and_item_and_dests.iter() {
+                let _details =
+                    Item::<T, I>::get(&collection, &item).ok_or(Error::<T, I>::UnknownItem)?;
+            }
+
+            if let Some(check_origin) = maybe_check_origin {
+                for (collection, item, dest) in collection_and_item_and_dests {
+                    let dest = T::Lookup::lookup(dest)?;
+                    ensure!(
+                        Self::has_role(&collection, &check_origin, CollectionRole::Admin),
+                        Error::<T, I>::NoPermission
+                    );
+
+                    Self::do_transfer(collection, item, dest, |_, _details| Ok(()))?;
+                }
+            }
+
+            Ok(())
+        }
+
+        #[pallet::call_index(41)]
+        #[pallet::weight((
+            T::WeightInfo::burn(),
+            DispatchClass::Operational,
+            Pays::No,
+        ))]
+        pub fn bulk_force_burn(
+            origin: OriginFor<T>,
+            collection_and_items: Vec<(T::CollectionId, T::ItemId)>,
+        ) -> DispatchResult {
+            let maybe_check_origin = T::ForceOrigin::try_origin(origin)
+                .map(|_| None)
+                .or_else(|origin| ensure_signed(origin).map(Some).map_err(DispatchError::from))?;
+
+            if let Some(check_origin) = maybe_check_origin {
+                for (collection, item) in collection_and_items {
+                    ensure!(
+                        Self::has_role(&collection, &check_origin, CollectionRole::Admin),
+                        Error::<T, I>::NoPermission
+                    );
+
+                    Self::do_burn(collection, item, |_details| Ok(()))?;
+                }
             }
 
             Ok(())
