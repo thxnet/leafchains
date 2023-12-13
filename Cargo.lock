@@ -3108,6 +3108,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-dao",
  "pallet-multisig",
  "pallet-nfts",
  "pallet-nfts-runtime-api",

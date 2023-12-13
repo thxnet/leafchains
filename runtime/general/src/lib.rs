@@ -153,7 +153,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("thxnet-general-runtime"),
     impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
-    spec_version: 1,
+    spec_version: 2,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -448,6 +448,7 @@ parameter_types! {
     pub const StringLimit: u32 = 50;
     pub const MetadataDepositBase: Balance = 10 * UNITS;
     pub const MetadataDepositPerByte: Balance = 1 * UNITS;
+    pub const DaoTopicRaiserBalanceLowerBound: Balance = 1_000_000 * UNITS;
 }
 
 impl pallet_assets::Config for Runtime {
@@ -515,6 +516,24 @@ impl pallet_nfts::Config for Runtime {
     type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_dao::Config for Runtime {
+    type Currency = Balances;
+    type OptionIndex = u64;
+    type RuntimeEvent = RuntimeEvent;
+    type StringLimit = ConstU32<{ 2048 * 4 }>;
+    type TopicDescriptionMaximumLength = ConstU32<2048>;
+    type TopicDescriptionMinimumLength = ConstU32<1>;
+    type TopicId = u64;
+    type TopicOptionMaximumLength = ConstU32<256>;
+    type TopicOptionMaximumNumber = ConstU32<1024>;
+    type TopicOptionMinimumLength = ConstU32<1>;
+    type TopicRaiserBalanceLowerBound = ConstU128<1_000_000>;
+    type TopicTitleMaximumLength = ConstU32<256>;
+    type TopicTitleMinimumLength = ConstU32<1>;
+    type UnixTime = pallet_timestamp::Pallet<Runtime>;
+    type Vote = u128;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously
 // configured.
 construct_runtime!(
@@ -539,6 +558,7 @@ construct_runtime!(
         AssetTxPayment: pallet_asset_tx_payment = 12,
         Assets: pallet_assets = 13,
         Nfts: pallet_nfts = 14,
+        Dao: pallet_dao = 15,
 
         // Collator support. The order of these 4 are important and shall not change.
         Authorship: pallet_authorship = 20,
@@ -552,6 +572,8 @@ construct_runtime!(
         PolkadotXcm: pallet_xcm = 31,
         CumulusXcm: cumulus_pallet_xcm = 32,
         DmpQueue: cumulus_pallet_dmp_queue = 33,
+
+
 
         Sudo: pallet_sudo = 255,
     }
