@@ -62,8 +62,8 @@ pub mod pallet {
         /// Contains duplicated option
         DuplicatedOption,
 
-        /// Unknow topic.
-        UnknowTopic,
+        /// Unknown topic.
+        UnknownTopic,
 
         /// A title is too short.
         TitleTooShort,
@@ -215,6 +215,9 @@ pub mod pallet {
         /// The threshold of topic raiser.
         #[pallet::constant]
         type TopicRaiserBalanceLowerBound: Get<u128>;
+
+        #[pallet::constant]
+        type CurrencyUnits: Get<u128>;
     }
 
     #[pallet::call]
@@ -313,7 +316,7 @@ pub mod pallet {
             {
                 topic_details
             } else {
-                return Err(Error::<T, I>::UnknowTopic.into());
+                return Err(Error::<T, I>::UnknownTopic.into());
             };
 
             {
@@ -328,6 +331,7 @@ pub mod pallet {
                 );
 
                 let weight_per_required_option = (T::Currency::total_balance(&voter)
+                    / T::CurrencyUnits::get().saturated_into::<BalanceOf<T, I>>()
                     / 100_u32.saturated_into::<BalanceOf<T, I>>())
                 .saturated_into::<u128>()
                 .saturated_into::<T::Vote>();
@@ -358,7 +362,7 @@ pub mod pallet {
             {
                 topic_details
             } else {
-                return Err(Error::<T, I>::UnknowTopic.into());
+                return Err(Error::<T, I>::UnknownTopic.into());
             };
 
             {

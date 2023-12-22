@@ -7,7 +7,7 @@ use frame_support::{
 use sp_runtime::BoundedVec;
 
 use super::*;
-use crate::mock::{new_test_ext, Balances, Dao, RuntimeOrigin, System, Test, Timestamp};
+use crate::mock::{new_test_ext, Balances, Dao, RuntimeOrigin, System, Test, Timestamp, UNITS};
 
 const ONE_MILLISECOND: u64 = 1000;
 
@@ -48,7 +48,7 @@ fn test_voting_flow() {
             voters.clone()
         ));
         for voter in voters {
-            let weight_per_required_option = Balances::total_balance(&voter) / 100;
+            let weight_per_required_option = Balances::total_balance(&voter) / 100 / UNITS;
 
             System::assert_has_event(
                 Event::<Test>::VotingRightTokenIssued {
@@ -79,7 +79,7 @@ fn test_voting_flow() {
 
         let mut votes_result = Dao::get_topic_votes_result_by_id(topic_id);
         votes_result.sort_unstable();
-        let weight_per_required_option = Balances::total_balance(&(voter_count - 1)) / 100;
+        let weight_per_required_option = Balances::total_balance(&(voter_count - 1)) / 100 / UNITS;
 
         assert_eq!(
             votes_result,

@@ -18,6 +18,8 @@ use crate::{self as pallet_dao};
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
+pub const UNITS: u128 = 10_000_000_000;
+
 construct_runtime!(
     pub enum Test where
         Block = Block,
@@ -79,6 +81,7 @@ impl pallet_timestamp::Config for Test {
 
 impl pallet_dao::Config for Test {
     type Currency = Balances;
+    type CurrencyUnits = ConstU128<{ UNITS }>;
     type OptionIndex = u64;
     type RuntimeEvent = RuntimeEvent;
     type StringLimit = ConstU32<{ 4 * 2048 }>;
@@ -97,9 +100,9 @@ impl pallet_dao::Config for Test {
 
 pub(crate) fn new_test_ext() -> sp_io::TestExternalities {
     let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
-    let balance = 1_000_000;
+    let balance = 1_000_000 * UNITS;
     pallet_balances::pallet::GenesisConfig::<Test> {
-        balances: (0..100).map(|i| (i, balance)).collect(),
+        balances: (0..100).map(|i| (i, balance * UNITS)).collect(),
     }
     .assimilate_storage(&mut t)
     .unwrap();
