@@ -13,12 +13,12 @@ const ONE_MILLISECOND: u64 = 1000;
 
 #[test]
 fn test_voting_flow() {
-    let voting_period_start = 100000;
-    let voting_period_end = voting_period_start + 100000;
-    let initial_timestamp = 90;
+    let voting_period_start = 1_000_000;
+    let voting_period_end = voting_period_start + 1_000_000;
+    let initial_timestamp = 90_000;
     let mut ext = new_test_ext();
     ext.execute_with(|| {
-        pallet_timestamp::Now::<Test>::put(46);
+        pallet_timestamp::Now::<Test>::put(46_000);
         assert_ok!(Timestamp::set(RuntimeOrigin::none(), initial_timestamp));
         assert_eq!(Timestamp::now(), initial_timestamp);
         let raiser = 2;

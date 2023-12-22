@@ -248,7 +248,7 @@ pub mod pallet {
                 );
                 ensure!(
                     voting_period_end >= voting_period_start + THREE_HOURS
-                        && voting_period_end <= THREE_MONTHS,
+                        && voting_period_end <= voting_period_start + THREE_MONTHS,
                     Error::<T, I>::InvalidVotingPeriodEnd
                 );
             }
