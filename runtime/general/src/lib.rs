@@ -518,6 +518,7 @@ impl pallet_nfts::Config for Runtime {
 
 impl pallet_dao::Config for Runtime {
     type Currency = Balances;
+    type CurrencyUnits = ConstU128<{ UNITS }>;
     type OptionIndex = u64;
     type RuntimeEvent = RuntimeEvent;
     type StringLimit = ConstU32<{ 2048 * 4 }>;
@@ -527,7 +528,7 @@ impl pallet_dao::Config for Runtime {
     type TopicOptionMaximumLength = ConstU32<256>;
     type TopicOptionMaximumNumber = ConstU32<1024>;
     type TopicOptionMinimumLength = ConstU32<1>;
-    type TopicRaiserBalanceLowerBound = ConstU128<1_000_000>;
+    type TopicRaiserBalanceLowerBound = ConstU128<{ 1_000_000 * UNITS }>;
     type TopicTitleMaximumLength = ConstU32<256>;
     type TopicTitleMinimumLength = ConstU32<1>;
     type UnixTime = pallet_timestamp::Pallet<Runtime>;
