@@ -101,6 +101,9 @@ pub mod pallet {
         /// The answer number is invalid.
         InvalidAnswerNumber,
 
+        /// The weight ratio is invalid.
+        InvalidWeightRatio,
+
         /// Voter has voted on the topic.
         VoterHasVoted,
 
@@ -308,9 +311,16 @@ pub mod pallet {
             origin: OriginFor<T>,
             topic_id: T::TopicId,
             voters: Vec<T::AccountId>,
+            weight_ratio_for_voters: Option<u64>,
         ) -> DispatchResult {
             // Make sure the caller is from a signed origin
             let _raiser = frame_system::ensure_signed(origin)?;
+
+            let weight_ratio_for_voters = weight_ratio_for_voters.unwrap_or(1);
+            ensure!(
+                weight_ratio_for_voters > 0 && weight_ratio_for_voters <= 10_000,
+                Error::<T, I>::InvalidWeightRatio
+            );
 
             let topic_details = if let Some(topic_details) = TopicCollection::<T, I>::get(&topic_id)
             {
@@ -331,8 +341,7 @@ pub mod pallet {
                 );
 
                 let weight_per_required_option = (T::Currency::total_balance(&voter)
-                    / T::CurrencyUnits::get().saturated_into::<BalanceOf<T, I>>()
-                    / 100_u32.saturated_into::<BalanceOf<T, I>>())
+                    * weight_ratio_for_voters.saturated_into::<BalanceOf<T, I>>())
                 .saturated_into::<u128>()
                 .saturated_into::<T::Vote>();
 

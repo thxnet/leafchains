@@ -91,7 +91,7 @@ impl pallet_dao::Config for Test {
     type TopicOptionMaximumLength = ConstU32<256>;
     type TopicOptionMaximumNumber = ConstU32<1024>;
     type TopicOptionMinimumLength = ConstU32<1>;
-    type TopicRaiserBalanceLowerBound = ConstU128<1_000_000>;
+    type TopicRaiserBalanceLowerBound = ConstU128<250_000>;
     type TopicTitleMaximumLength = ConstU32<256>;
     type TopicTitleMinimumLength = ConstU32<1>;
     type UnixTime = pallet_timestamp::Pallet<Test>;
