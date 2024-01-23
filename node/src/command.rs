@@ -47,6 +47,7 @@ impl SubstrateCli for Cli {
             "txd-testnet" => Box::new(chain_spec::testnet::txd::testnet_config()),
             "sand-testnet" => Box::new(chain_spec::testnet::sand::testnet_config()),
             "aether-testnet" => Box::new(chain_spec::testnet::aether::testnet_config()),
+            "izutsuya-testnet" => Box::new(chain_spec::testnet::izutsuya::testnet_config()),
 
             // mainnet
             "thx-mainnet" => Box::new(chain_spec::mainnet::thx::mainnet_config()),
