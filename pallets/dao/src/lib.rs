@@ -345,17 +345,19 @@ pub mod pallet {
                 .saturated_into::<u128>()
                 .saturated_into::<T::Vote>();
 
-                VotingRightTokenCollection::<T, I>::insert(
-                    topic_id,
-                    &voter,
-                    weight_per_required_option,
-                );
+                if weight_per_required_option > T::Vote::initial_value() {
+                    VotingRightTokenCollection::<T, I>::insert(
+                        topic_id,
+                        &voter,
+                        weight_per_required_option,
+                    );
 
-                Self::deposit_event(Event::VotingRightTokenIssued {
-                    topic_id,
-                    voter,
-                    weight_per_required_option,
-                });
+                    Self::deposit_event(Event::VotingRightTokenIssued {
+                        topic_id,
+                        voter,
+                        weight_per_required_option,
+                    });
+                }
             }
             Ok(())
         }
