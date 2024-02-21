@@ -16,6 +16,7 @@
       ["txd-testnet"]="testnet.leafchain.txd"
       ["sand-testnet"]="testnet.leafchain.sand"
       ["aether-testnet"]="testnet.leafchain.aether"
+      ["izutsuya-testnet"]="testnet.leafchain.izutsuya"
     )
 
     mkdir -pv "dist/chain-specs"

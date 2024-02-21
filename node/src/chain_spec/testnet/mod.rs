@@ -1,4 +1,5 @@
 pub mod aether;
+pub mod izutsuya;
 pub mod lmt;
 pub mod sand;
 pub mod thx;
