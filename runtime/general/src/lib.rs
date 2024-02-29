@@ -519,6 +519,7 @@ impl pallet_nfts::Config for Runtime {
 impl pallet_dao::Config for Runtime {
     type Currency = Balances;
     type CurrencyUnits = ConstU128<{ UNITS }>;
+    type ForceOrigin = frame_system::EnsureRoot<AccountId>;
     type OptionIndex = u64;
     type RuntimeEvent = RuntimeEvent;
     type StringLimit = ConstU32<{ 2048 * 4 }>;
