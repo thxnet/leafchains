@@ -100,7 +100,7 @@ jobs:
             ${{ steps.meta-leafchain-genesis.outputs.bake-file }} > /tmp/bake-metadata.json
 
       - name: Build container image
-        uses: docker/bake-action@v3
+        uses: docker/bake-action@v4
         with:
           pull: true
           push: true
