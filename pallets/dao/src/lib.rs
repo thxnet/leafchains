@@ -183,6 +183,8 @@ pub mod pallet {
             + AtLeast32Bit
             + From<u64>;
 
+        type ForceOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
         /// The minimum length of topic title on-chain.
         #[pallet::constant]
         type TopicTitleMinimumLength: Get<u32>;
@@ -245,64 +247,41 @@ pub mod pallet {
                 Error::<T, I>::InsufficientBalance
             );
 
-            {
-                let now = T::UnixTime::now().as_secs().saturated_into::<u64>();
-                ensure!(
-                    voting_period_start >= now + ONE_HOUR
-                        && voting_period_start <= now + THREE_MONTHS,
-                    Error::<T, I>::InvalidVotingPeriodStart
-                );
-                ensure!(
-                    voting_period_end >= voting_period_start + THREE_HOURS
-                        && voting_period_end <= voting_period_start + THREE_MONTHS,
-                    Error::<T, I>::InvalidVotingPeriodEnd
-                );
-            }
+            Self::do_raise_topic(
+                raiser,
+                title,
+                description,
+                voting_period_start,
+                voting_period_end,
+                options,
+                required_answer_number,
+            )
+        }
 
-            check_title::<T, I>(&title)?;
-            check_description::<T, I>(&description)?;
-            check_options::<T, I>(&options)?;
+        #[pallet::call_index(3)]
+        #[pallet::weight(0)]
+        pub fn force_raise_topic(
+            origin: OriginFor<T>,
+            raiser: T::AccountId,
+            title: Vec<u8>,
+            description: Vec<u8>,
+            voting_period_start: u64,
+            voting_period_end: u64,
+            options: Vec<Vec<u8>>,
+            required_answer_number: u32,
+        ) -> DispatchResult {
+            // Make sure the caller is from a signed origin
+            T::ForceOrigin::ensure_origin(origin)?;
 
-            ensure!(
-                required_answer_number >= 1
-                    && required_answer_number as usize <= (options.len() - 1),
-                Error::<T, I>::InvalidAnswerNumber
-            );
-
-            let topic_id = TopicCount::<T, I>::get().unwrap_or(T::TopicId::initial_value());
-            let topic_details: TopicDetails<
-                T::AccountId,
-                T::StringLimit,
-                T::TopicOptionMaximumNumber,
-            > = {
-                let mut opts = BoundedVec::default();
-                for option in options {
-                    opts.try_push(
-                        BoundedVec::try_from(option).map_err(|_| Error::<T, I>::OptionTooLong)?,
-                    )
-                    .map_err(|_| Error::<T, I>::OptionTooMany)?;
-                }
-
-                TopicDetails {
-                    raiser: raiser.clone(),
-                    title: BoundedVec::try_from(title).map_err(|_| Error::<T, I>::TitleTooLong)?,
-                    description: BoundedVec::try_from(description)
-                        .map_err(|_| Error::<T, I>::DescriptionTooLong)?,
-                    voting_period_start,
-                    voting_period_end,
-                    options: opts,
-                    required_answer_number,
-                }
-            };
-
-            TopicCollection::<T, I>::insert(topic_id, topic_details);
-
-            Self::deposit_event(Event::TopicRaised { id: topic_id, raiser });
-
-            let next_topic_id = topic_id.increment();
-            TopicCount::<T, I>::set(Some(next_topic_id));
-
-            Ok(())
+            Self::do_raise_topic(
+                raiser,
+                title,
+                description,
+                voting_period_start,
+                voting_period_end,
+                options,
+                required_answer_number,
+            )
         }
 
         #[pallet::call_index(1)]
@@ -435,6 +414,75 @@ pub mod pallet {
     }
 
     impl<T: Config<I>, I: 'static> Pallet<T, I> {
+        pub fn do_raise_topic(
+            raiser: T::AccountId,
+            title: Vec<u8>,
+            description: Vec<u8>,
+            voting_period_start: u64,
+            voting_period_end: u64,
+            options: Vec<Vec<u8>>,
+            required_answer_number: u32,
+        ) -> DispatchResult {
+            {
+                let now = T::UnixTime::now().as_secs().saturated_into::<u64>();
+                ensure!(
+                    voting_period_start >= now + ONE_HOUR
+                        && voting_period_start <= now + THREE_MONTHS,
+                    Error::<T, I>::InvalidVotingPeriodStart
+                );
+                ensure!(
+                    voting_period_end >= voting_period_start + THREE_HOURS
+                        && voting_period_end <= voting_period_start + THREE_MONTHS,
+                    Error::<T, I>::InvalidVotingPeriodEnd
+                );
+            }
+
+            check_title::<T, I>(&title)?;
+            check_description::<T, I>(&description)?;
+            check_options::<T, I>(&options)?;
+
+            ensure!(
+                required_answer_number >= 1
+                    && required_answer_number as usize <= (options.len() - 1),
+                Error::<T, I>::InvalidAnswerNumber
+            );
+
+            let topic_id = TopicCount::<T, I>::get().unwrap_or(T::TopicId::initial_value());
+            let topic_details: TopicDetails<
+                T::AccountId,
+                T::StringLimit,
+                T::TopicOptionMaximumNumber,
+            > = {
+                let mut opts = BoundedVec::default();
+                for option in options {
+                    opts.try_push(
+                        BoundedVec::try_from(option).map_err(|_| Error::<T, I>::OptionTooLong)?,
+                    )
+                    .map_err(|_| Error::<T, I>::OptionTooMany)?;
+                }
+
+                TopicDetails {
+                    raiser: raiser.clone(),
+                    title: BoundedVec::try_from(title).map_err(|_| Error::<T, I>::TitleTooLong)?,
+                    description: BoundedVec::try_from(description)
+                        .map_err(|_| Error::<T, I>::DescriptionTooLong)?,
+                    voting_period_start,
+                    voting_period_end,
+                    options: opts,
+                    required_answer_number,
+                }
+            };
+
+            TopicCollection::<T, I>::insert(topic_id, topic_details);
+
+            Self::deposit_event(Event::TopicRaised { id: topic_id, raiser });
+
+            let next_topic_id = topic_id.increment();
+            TopicCount::<T, I>::set(Some(next_topic_id));
+
+            Ok(())
+        }
+
         pub fn get_topic_by_id(
             topic_id: T::TopicId,
         ) -> Option<TopicDetails<T::AccountId, T::StringLimit, T::TopicOptionMaximumNumber>>

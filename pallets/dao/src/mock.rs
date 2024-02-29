@@ -82,6 +82,7 @@ impl pallet_timestamp::Config for Test {
 impl pallet_dao::Config for Test {
     type Currency = Balances;
     type CurrencyUnits = ConstU128<{ UNITS }>;
+    type ForceOrigin = frame_system::EnsureRoot<Self::AccountId>;
     type OptionIndex = u64;
     type RuntimeEvent = RuntimeEvent;
     type StringLimit = ConstU32<{ 4 * 2048 }>;
