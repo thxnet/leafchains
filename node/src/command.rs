@@ -52,6 +52,7 @@ impl SubstrateCli for Cli {
             // mainnet
             "thx-mainnet" => Box::new(chain_spec::mainnet::thx::mainnet_config()),
             "lmt-mainnet" => Box::new(chain_spec::mainnet::lmt::mainnet_config()),
+            "activa-mainnet" => Box::new(chain_spec::mainnet::activa::mainnet_config()),
             path => Box::new(chain_spec::ChainSpec::from_json_file(PathBuf::from(path))?),
         })
     }

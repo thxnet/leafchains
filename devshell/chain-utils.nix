@@ -10,6 +10,7 @@
     chain_specs+=(
       ["thx-mainnet"]="mainnet.leafchain.thx"
       ["lmt-mainnet"]="mainnet.leafchain.lmt"
+      ["activa-mainnet"]="mainnet.leafchain.activa"
 
       ["thx-testnet"]="testnet.leafchain.thx"
       ["lmt-testnet"]="testnet.leafchain.lmt"
