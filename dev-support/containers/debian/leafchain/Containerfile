@@ -8,7 +8,30 @@ RUN <<EOF
 
 set -eu
 
-useradd -m -u 1000 -U -s /bin/sh -d /leafchain thxnet
+# Check if the user with UID 1000 exists
+if id -u 1000 >/dev/null 2>&1; then
+    # Get the current username for UID 1000
+    current_user=$(getent passwd 1000 | cut -d: -f1)
+
+    # Ensure the user has GID 1000
+    usermod -g 1000 "$current_user"
+
+    # Ensure the user has the correct shell and home directory
+    usermod -s /bin/sh -d /leafchain "$current_user"
+
+    # Rename the user to 'thxnet' if it isn't already named 'thxnet'
+    if [ "$current_user" != "thxnet" ]; then
+        usermod -l thxnet "$current_user"
+        groupmod -n thxnet "$current_user"  # Rename the group as well
+    fi
+else
+    # If the user with UID 1000 doesn't exist, create it
+    if ! getent group 1000 >/dev/null 2>&1; then
+        groupadd -g 1000 thxnet
+    fi
+
+    useradd -m -u 1000 -g 1000 -s /bin/sh -d /leafchain thxnet
+fi
 
 mkdir -p /data /leafchain/.local/share
 

@@ -47,10 +47,18 @@ impl SubstrateCli for Cli {
             "txd-testnet" => Box::new(chain_spec::testnet::txd::testnet_config()),
             "sand-testnet" => Box::new(chain_spec::testnet::sand::testnet_config()),
             "aether-testnet" => Box::new(chain_spec::testnet::aether::testnet_config()),
+            "izutsuya-testnet" => Box::new(chain_spec::testnet::izutsuya::testnet_config()),
+            "mirrored-body-testnet" => {
+                Box::new(chain_spec::testnet::mirrored_body::testnet_config())
+            }
 
             // mainnet
             "thx-mainnet" => Box::new(chain_spec::mainnet::thx::mainnet_config()),
             "lmt-mainnet" => Box::new(chain_spec::mainnet::lmt::mainnet_config()),
+            "activa-mainnet" => Box::new(chain_spec::mainnet::activa::mainnet_config()),
+            "mirrored-body-mainnet" => {
+                Box::new(chain_spec::mainnet::mirrored_body::mainnet_config())
+            }
             path => Box::new(chain_spec::ChainSpec::from_json_file(PathBuf::from(path))?),
         })
     }
