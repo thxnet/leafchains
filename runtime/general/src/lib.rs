@@ -9,6 +9,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod weights;
 pub mod xcm_config;
 
+// For Proxy Pallet
+use codec::{Decode, Encode, MaxEncodedLen};
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use frame_support::{
     construct_runtime,
@@ -16,10 +18,10 @@ use frame_support::{
     parameter_types,
     traits::{
         tokens::nonfungibles_v2::Inspect, AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64,
-        Everything,
+        Everything, InstanceFilter,
     },
     weights::{constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight},
-    PalletId,
+    PalletId, RuntimeDebug,
 };
 use frame_system::{
     limits::{BlockLength, BlockWeights},
@@ -153,7 +155,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("thxnet-general-runtime"),
     impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
-    spec_version: 1,
+    spec_version: 2,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -515,6 +517,135 @@ impl pallet_nfts::Config for Runtime {
     type WeightInfo = pallet_nfts::weights::SubstrateWeight<Runtime>;
 }
 
+parameter_types! {
+    // One storage item; key size 32, value size 8; .
+    pub const ProxyDepositBase: Balance = deposit(1, 8);
+    // Additional storage item size of 33 bytes.
+    pub const ProxyDepositFactor: Balance = deposit(0, 33);
+    pub const MaxProxies: u16 = 32;
+    pub const AnnouncementDepositBase: Balance = deposit(1, 8);
+    pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+    pub const MaxPending: u16 = 32;
+}
+
+/// The type used to represent the kinds of proxying allowed.
+#[derive(
+    Copy,
+    Clone,
+    Eq,
+    PartialEq,
+    Ord,
+    PartialOrd,
+    Encode,
+    Decode,
+    RuntimeDebug,
+    MaxEncodedLen,
+    scale_info::TypeInfo,
+)]
+pub enum ProxyType {
+    Any = 0,
+    NonTransfer = 1,
+    Governance = 2,
+    Staking = 3,
+    // Skip 4 as it is now removed (was SudoBalances)
+    IdentityJudgement = 5,
+    CancelProxy = 6,
+    // Auction = 7,
+}
+
+#[cfg(test)]
+mod proxy_type_tests {
+    use super::*;
+
+    #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug)]
+    pub enum OldProxyType {
+        Any,
+        NonTransfer,
+        Governance,
+        Staking,
+        SudoBalances,
+        IdentityJudgement,
+    }
+
+    #[test]
+    fn proxy_type_decodes_correctly() {
+        for (i, j) in vec![
+            (OldProxyType::Any, ProxyType::Any),
+            (OldProxyType::NonTransfer, ProxyType::NonTransfer),
+            (OldProxyType::Governance, ProxyType::Governance),
+            (OldProxyType::Staking, ProxyType::Staking),
+            (OldProxyType::IdentityJudgement, ProxyType::IdentityJudgement),
+        ]
+        .into_iter()
+        {
+            assert_eq!(i.encode(), j.encode());
+        }
+        assert!(ProxyType::decode(&mut &OldProxyType::SudoBalances.encode()[..]).is_err());
+    }
+}
+
+impl Default for ProxyType {
+    fn default() -> Self { Self::Any }
+}
+impl InstanceFilter<RuntimeCall> for ProxyType {
+    fn filter(&self, c: &RuntimeCall) -> bool {
+        match self {
+            ProxyType::Any => true,
+            ProxyType::NonTransfer => matches!(
+                c,
+                RuntimeCall::System(..)
+                    | RuntimeCall::Timestamp(..)
+                    | RuntimeCall::Session(..)
+                    | RuntimeCall::Utility(..)
+                    | RuntimeCall::Proxy(..)
+                    | RuntimeCall::Multisig(..)
+                    | RuntimeCall::Assets(..)
+                    | RuntimeCall::Nfts(..)
+            ),
+            ProxyType::Governance => matches!(c, RuntimeCall::Utility(..)),
+            ProxyType::Staking => {
+                matches!(c, RuntimeCall::Session(..) | RuntimeCall::Utility(..))
+            }
+            ProxyType::IdentityJudgement => matches!(c, RuntimeCall::Utility(..)),
+            ProxyType::CancelProxy => {
+                matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
+            }
+            // ProxyType::Auction => matches!(
+            // 	c,
+            // 	RuntimeCall::Auctions(..) |
+            // 		RuntimeCall::Crowdloan(..) |
+            // 		RuntimeCall::Registrar(..) |
+            // 		RuntimeCall::Slots(..)
+            // ),
+        }
+    }
+
+    fn is_superset(&self, o: &Self) -> bool {
+        match (self, o) {
+            (x, y) if x == y => true,
+            (ProxyType::Any, _) => true,
+            (_, ProxyType::Any) => false,
+            (ProxyType::NonTransfer, _) => true,
+            _ => false,
+        }
+    }
+}
+
+impl pallet_proxy::Config for Runtime {
+    type AnnouncementDepositBase = AnnouncementDepositBase;
+    type AnnouncementDepositFactor = AnnouncementDepositFactor;
+    type CallHasher = BlakeTwo256;
+    type Currency = Balances;
+    type MaxPending = MaxPending;
+    type MaxProxies = MaxProxies;
+    type ProxyDepositBase = ProxyDepositBase;
+    type ProxyDepositFactor = ProxyDepositFactor;
+    type ProxyType = ProxyType;
+    type RuntimeCall = RuntimeCall;
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = weights::pallet_proxy::WeightInfo<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously
 // configured.
 construct_runtime!(
@@ -547,6 +678,9 @@ construct_runtime!(
         Aura: pallet_aura = 23,
         AuraExt: cumulus_pallet_aura_ext = 24,
 
+        // Proxy
+        Proxy: pallet_proxy = 29,
+
         // XCM helpers.
         XcmpQueue: cumulus_pallet_xcmp_queue = 30,
         PolkadotXcm: pallet_xcm = 31,
@@ -566,6 +700,7 @@ mod benches {
         [pallet_assets, Assets]
         [pallet_multisig, Multisig]
         [pallet_nfts, Nfts]
+        [pallet_proxy, Proxy]
         [pallet_session, SessionBench::<Runtime>]
         [pallet_timestamp, Timestamp]
         [pallet_collator_selection, CollatorSelection]

@@ -3082,7 +3082,7 @@ dependencies = [
 
 [[package]]
 name = "general-runtime"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -3111,6 +3111,7 @@ dependencies = [
  "pallet-multisig",
  "pallet-nfts",
  "pallet-nfts-runtime-api",
+ "pallet-proxy",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
@@ -11565,7 +11566,7 @@ dependencies = [
 
 [[package]]
 name = "thxnet-leafchain"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "clap",
  "cumulus-client-cli",
