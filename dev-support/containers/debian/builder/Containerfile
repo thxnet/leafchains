@@ -14,6 +14,8 @@ ARG SCCACHE_S3_USE_SSL
 
 RUN cargo build --locked --release
 
+RUN sccache --show-stats
+
 RUN <<EOF
 #!/usr/bin/env bash
 

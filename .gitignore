@@ -21,3 +21,5 @@
 # nix output result symbol link
 result
 .direnv/
+
+.claude/settings.local.json
