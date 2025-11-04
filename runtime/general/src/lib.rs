@@ -117,6 +117,16 @@ pub type UncheckedExtrinsic =
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 
+/// All migrations that will run on the next runtime upgrade.
+///
+/// This contains the combined migrations of all pallets that require migration.
+/// Order matters: migrations are executed in the order they appear in this
+/// tuple.
+pub type Migrations = (
+    // TrustlessAgent pallet migrations
+    pallet_trustless_agent::migrations::Migrations<Runtime>,
+);
+
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
     Runtime,
@@ -124,6 +134,7 @@ pub type Executive = frame_executive::Executive<
     frame_system::ChainContext<Runtime>,
     Runtime,
     AllPalletsWithSystem,
+    Migrations,
 >;
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't
@@ -155,7 +166,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("thxnet-general-runtime"),
     impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
-    spec_version: 2,
+    spec_version: 3,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -601,12 +612,17 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
                     | RuntimeCall::Multisig(..)
                     | RuntimeCall::Assets(..)
                     | RuntimeCall::Nfts(..)
+                    | RuntimeCall::TrustlessAgent(..)
             ),
             ProxyType::Governance => matches!(c, RuntimeCall::Utility(..)),
             ProxyType::Staking => {
                 matches!(c, RuntimeCall::Session(..) | RuntimeCall::Utility(..))
             }
-            ProxyType::IdentityJudgement => matches!(c, RuntimeCall::Utility(..)),
+            ProxyType::IdentityJudgement => matches!(
+                c,
+                RuntimeCall::Identity(pallet_identity::Call::provide_judgement { .. })
+                    | RuntimeCall::Utility(..)
+            ),
             ProxyType::CancelProxy => {
                 matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
             }
@@ -646,6 +662,77 @@ impl pallet_proxy::Config for Runtime {
     type WeightInfo = weights::pallet_proxy::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+    // Identity pallet deposits
+    // Aligned with Rootchain economic standards (100 DOLLARS basic deposit)
+    // Using deposit() function: items * 15 * CENTS + bytes * 6 * CENTS
+    pub const BasicDeposit: Balance = deposit(667, 0);        // ≈ 100.05 DOLLARS
+    pub const FieldDeposit: Balance = deposit(0, 0);          // 0 DOLLARS (free additional fields)
+    pub const SubAccountDeposit: Balance = deposit(0, 0);     // 0 DOLLARS (free sub-accounts)
+    pub const MaxSubAccounts: u32 = 100;
+    pub const MaxAdditionalFields: u32 = 100;
+    pub const MaxRegistrars: u32 = 20;
+}
+
+impl pallet_identity::Config for Runtime {
+    type BasicDeposit = BasicDeposit;
+    type Currency = Balances;
+    type FieldDeposit = FieldDeposit;
+    type ForceOrigin = EnsureRoot<AccountId>;
+    type MaxAdditionalFields = MaxAdditionalFields;
+    type MaxRegistrars = MaxRegistrars;
+    type MaxSubAccounts = MaxSubAccounts;
+    type RegistrarOrigin = EnsureRoot<AccountId>;
+    type RuntimeEvent = RuntimeEvent;
+    type Slashed = ();
+    type SubAccountDeposit = SubAccountDeposit;
+    type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
+}
+
+parameter_types! {
+    // Trustless Agent pallet parameters
+    pub const AgentDeposit: Balance = 100 * DOLLARS;
+    pub const FeedbackDeposit: Balance = 10 * DOLLARS;
+    pub const ValidatorMinStake: Balance = 1000 * DOLLARS;
+    pub const ValidationRequestDeposit: Balance = 5 * DOLLARS;
+    pub const DisputeDeposit: Balance = 20 * DOLLARS;
+    pub const ValidationDeadline: BlockNumber = 7 * DAYS;
+    // Escrow auto-complete duration: 7 days
+    pub const EscrowAutoCompleteBlocks: BlockNumber = 7 * DAYS;
+    // Feedback rate limit: 7 days between feedbacks from same client to same agent
+    pub const FeedbackRateLimitBlocks: BlockNumber = 7 * DAYS;
+    pub const MaxUriLength: u32 = 512;
+    pub const MaxTagLength: u32 = 64;
+    pub const MaxTags: u32 = 20;
+    pub const MaxMetadataKeyLength: u32 = 128;
+    pub const MaxMetadataValueLength: u32 = 512;
+    pub const MaxMetadataEntries: u32 = 50;
+    pub const MaxResponsesPerFeedback: u32 = 20;
+}
+
+impl pallet_trustless_agent::Config for Runtime {
+    type AgentDeposit = AgentDeposit;
+    type Currency = Balances;
+    type DisputeDeposit = DisputeDeposit;
+    type DisputeResolverOrigin = EnsureRoot<AccountId>;
+    type EscrowAutoCompleteBlocks = EscrowAutoCompleteBlocks;
+    type FeedbackDeposit = FeedbackDeposit;
+    type FeedbackRateLimitBlocks = FeedbackRateLimitBlocks;
+    type MaxMetadataEntries = MaxMetadataEntries;
+    type MaxMetadataKeyLength = MaxMetadataKeyLength;
+    type MaxMetadataValueLength = MaxMetadataValueLength;
+    type MaxResponsesPerFeedback = MaxResponsesPerFeedback;
+    type MaxTagLength = MaxTagLength;
+    type MaxTags = MaxTags;
+    type MaxUriLength = MaxUriLength;
+    type RuntimeEvent = RuntimeEvent;
+    type ValidationDeadline = ValidationDeadline;
+    type ValidationRequestDeposit = ValidationRequestDeposit;
+    type ValidatorManagerOrigin = EnsureRoot<AccountId>;
+    type ValidatorMinStake = ValidatorMinStake;
+    type WeightInfo = weights::pallet_trustless_agent::WeightInfo<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously
 // configured.
 construct_runtime!(
@@ -678,6 +765,12 @@ construct_runtime!(
         Aura: pallet_aura = 23,
         AuraExt: cumulus_pallet_aura_ext = 24,
 
+        // Trustless Agent
+        TrustlessAgent: pallet_trustless_agent = 27,
+
+        // Identity
+        Identity: pallet_identity = 28,
+
         // Proxy
         Proxy: pallet_proxy = 29,
 
@@ -699,6 +792,8 @@ mod benches {
         [pallet_balances, Balances]
         [pallet_assets, Assets]
         [pallet_multisig, Multisig]
+        [pallet_identity, Identity]
+        [pallet_trustless_agent, TrustlessAgent]
         [pallet_nfts, Nfts]
         [pallet_proxy, Proxy]
         [pallet_session, SessionBench::<Runtime>]
@@ -940,7 +1035,7 @@ impl_runtime_apis! {
         fn dispatch_benchmark(
             config: frame_benchmarking::BenchmarkConfig
         ) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-            use frame_benchmarking::{Benchmarking, BenchmarkBatch, TrackedStorageKey};
+            use frame_benchmarking::{Benchmarking, BenchmarkBatch};
 
             use frame_system_benchmarking::Pallet as SystemBench;
             impl frame_system_benchmarking::Config for Runtime {}
