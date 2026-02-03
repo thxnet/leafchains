@@ -6,6 +6,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod migrations;
 mod weights;
 pub mod xcm_config;
 
@@ -125,6 +126,8 @@ pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, Si
 pub type Migrations = (
     // TrustlessAgent pallet migrations
     pallet_trustless_agent::migrations::Migrations<Runtime>,
+    // Runtime-level migrations (storage version alignment)
+    migrations::align_cumulus_storage_versions::AlignCumulusStorageVersions,
 );
 
 /// Executive: handles dispatch to the various modules.
@@ -166,7 +169,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("thxnet-general-runtime"),
     impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
-    spec_version: 3,
+    spec_version: 4,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,

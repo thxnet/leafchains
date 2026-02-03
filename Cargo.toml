@@ -8,7 +8,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.4.0"
+version = "0.4.1"
 authors = ["THXLAB PTE. LTD. <contact@thxlab.io>"]
 homepage = "https://thxnet.org/"
 repository = "https://github.com/thxnet/leafchains"

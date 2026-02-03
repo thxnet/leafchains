@@ -835,6 +835,10 @@ pub mod pallet {
         CannotDisputeEscrow,
         /// Escrow dispute already resolved
         EscrowDisputeAlreadyResolved,
+        /// Timeout must be after auto-complete time
+        InvalidTimeoutPeriod,
+        /// Cannot cancel escrow that has auto-completed
+        CannotCancelAutoCompleted,
 
         // --- Dispute Errors ---
         /// Dispute does not exist
@@ -1560,17 +1564,33 @@ pub mod pallet {
 
         /// Create an escrow to pay an agent for a service.
         ///
-        /// The escrow will auto-complete after a specified duration (or default
-        /// `EscrowAutoCompleteBlocks`), allowing the agent to claim the funds.
-        /// The client can cancel after `timeout` blocks if the escrow hasn't
-        /// auto-completed.
+        /// The escrow follows this timeline:
+        /// 1. Creation (block N)
+        /// 2. Auto-complete (N + auto_complete_blocks): Agent can claim payment
+        /// 3. Timeout (N + timeout, must be > auto_complete_at): Client can
+        ///    cancel if agent never claimed
+        ///
+        /// **Important**: `timeout` must be AFTER `auto_complete_at`. This
+        /// ensures:
+        /// - Agent gets time to complete work and claim after auto-completion
+        /// - Client has a final recourse to cancel if agent never claims
+        /// - Agent is protected: once they claim, client cannot cancel
+        ///
+        /// Example: Set auto_complete_blocks = 7 days, timeout = 14 days
+        /// Agent can claim after 7 days, client can cancel after 14 days if
+        /// agent didn't claim.
         ///
         /// # Parameters
         /// - `agent_id`: The agent the escrow is for.
         /// - `amount`: The amount to lock in the escrow.
-        /// - `timeout`: The block number after which the client can cancel.
+        /// - `timeout`: Block number after which client can cancel if agent
+        ///   didn't claim (must be > auto_complete_at).
         /// - `custom_auto_complete_blocks`: Optional custom auto-complete
         ///   duration. If None, uses `EscrowAutoCompleteBlocks`.
+        ///
+        /// # Errors
+        /// - `AgentNotFound`: Agent does not exist
+        /// - `InvalidTimeoutPeriod`: Timeout is not after auto_complete_at
         #[pallet::call_index(10)]
         #[pallet::weight(T::WeightInfo::create_escrow())]
         pub fn create_escrow(
@@ -1597,6 +1617,11 @@ pub mod pallet {
             let auto_complete_duration =
                 custom_auto_complete_blocks.unwrap_or_else(|| T::EscrowAutoCompleteBlocks::get());
             let auto_complete_at = current_block.saturating_add(auto_complete_duration);
+
+            // Validate timeout: must be after auto_complete_at
+            // This gives agent time to claim after auto-complete
+            // Client can only cancel if agent fails to claim by timeout
+            ensure!(timeout > auto_complete_at, Error::<T>::InvalidTimeoutPeriod);
 
             // Create escrow info
             let escrow_info = EscrowInfo {
@@ -1694,8 +1719,25 @@ pub mod pallet {
 
         /// Cancel an escrow as the client after the timeout.
         ///
+        /// The client can only cancel if:
+        /// 1. The timeout period has been reached, AND
+        /// 2. The escrow status is still Active (agent hasn't claimed)
+        ///
+        /// Timeline: created → auto_complete_at → timeout
+        /// - Before auto_complete_at: Agent working, neither can cancel/claim
+        /// - After auto_complete_at: Agent can claim
+        /// - After timeout: Client can cancel IF agent didn't claim yet
+        ///
+        /// If the agent claims before timeout, the escrow is removed and client
+        /// cannot cancel. This protects the agent once they've claimed.
+        ///
         /// # Parameters
         /// - `escrow_id`: The ID of the escrow to cancel.
+        ///
+        /// # Errors
+        /// - `EscrowNotFound`: Escrow does not exist (or already claimed)
+        /// - `NotEscrowClient`: Caller is not the escrow client
+        /// - `EscrowNotTimedOut`: Timeout period has not been reached
         #[pallet::call_index(12)]
         #[pallet::weight(T::WeightInfo::cancel_escrow())]
         pub fn cancel_escrow(origin: OriginFor<T>, escrow_id: EscrowId) -> DispatchResult {
@@ -1706,9 +1748,13 @@ pub mod pallet {
             // Ensure caller is the client
             ensure!(escrow.client == who, Error::<T>::NotEscrowClient);
 
-            // Ensure timeout has passed
             let current_block = frame_system::Pallet::<T>::block_number();
+
+            // Ensure timeout has passed
             ensure!(current_block >= escrow.timeout, Error::<T>::EscrowNotTimedOut);
+
+            // If we get here, the escrow still exists (agent didn't claim)
+            // and timeout passed, so client can cancel
 
             // Unreserve funds back to the client
             T::Currency::unreserve(&escrow.client, escrow.amount);
