@@ -13,6 +13,7 @@
       ["activa-mainnet"]="mainnet.leafchain.activa"
       ["mirrored-body-mainnet"]="mainnet.leafchain.mirrored_body"
       ["avatect-mainnet"]="mainnet.leafchain.avatect"
+      ["ecq-mainnet"]="mainnet.leafchain.ecq"
 
       ["thx-testnet"]="testnet.leafchain.thx"
       ["lmt-testnet"]="testnet.leafchain.lmt"

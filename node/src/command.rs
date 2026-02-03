@@ -57,6 +57,7 @@ impl SubstrateCli for Cli {
             "lmt-mainnet" => Box::new(chain_spec::mainnet::lmt::mainnet_config()),
             "activa-mainnet" => Box::new(chain_spec::mainnet::activa::mainnet_config()),
             "avatect-mainnet" => Box::new(chain_spec::mainnet::avatect::mainnet_config()),
+            "ecq-mainnet" => Box::new(chain_spec::mainnet::ecq::mainnet_config()),
             "mirrored-body-mainnet" => {
                 Box::new(chain_spec::mainnet::mirrored_body::mainnet_config())
             }
