@@ -15,18 +15,18 @@ This skill adds a new leafchain to the THXNET Leafchains project.
 
 Confirm the following required information with the user (if a spec file is provided, read from it):
 
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| Network Type | `testnet` or `mainnet` | testnet |
-| Chain Name | Display name for the chain | ECQ Security Evidence Chain |
-| Chain ID slug | Identifier used with `--chain=` (format: `{name}-testnet` or `{name}-mainnet`) | ecq-testnet |
-| Module Name | Rust module name (snake_case, used for filename and mod.rs) | ecq |
-| Token Symbol | Token symbol | ECQT |
-| Token Decimals | Decimal places | 10 |
-| Initial Supply | Initial supply in UNITS (e.g. `1_000_000_000`) | 1_000_000_000 |
-| Leafchain ID | Parachain ID (u32) | 1007 |
-| Sudo Key | Admin account public key (hex, without 0x prefix), with the corresponding SS58 address as a comment | 265abf0b6e... |
-| Collators | Each collator's AccountId (hex) + AuraId (hex), with their respective SS58 addresses as comments | ... |
+| Parameter      | Description                                                                                         | Example                     |
+| -------------- | --------------------------------------------------------------------------------------------------- | --------------------------- |
+| Network Type   | `testnet` or `mainnet`                                                                              | testnet                     |
+| Chain Name     | Display name for the chain                                                                          | ECQ Security Evidence Chain |
+| Chain ID slug  | Identifier used with `--chain=` (format: `{name}-testnet` or `{name}-mainnet`)                      | ecq-testnet                 |
+| Module Name    | Rust module name (snake_case, used for filename and mod.rs)                                         | ecq                         |
+| Token Symbol   | Token symbol                                                                                        | ECQT                        |
+| Token Decimals | Decimal places                                                                                      | 10                          |
+| Initial Supply | Initial supply in UNITS (e.g. `1_000_000_000`)                                                      | 1_000_000_000               |
+| Leafchain ID   | Parachain ID (u32)                                                                                  | 1007                        |
+| Sudo Key       | Admin account public key (hex, without 0x prefix), with the corresponding SS58 address as a comment | 265abf0b6e...               |
+| Collators      | Each collator's AccountId (hex) + AuraId (hex), with their respective SS58 addresses as comments    | ...                         |
 
 Use the `AskUserQuestion` tool to prompt for any missing parameters.
 
@@ -101,6 +101,7 @@ pub fn testnet_config() -> ChainSpec {
 #### Mainnet template structure
 
 Same as testnet, with the following differences:
+
 - Import uses `mainnet::mainnet_genesis` instead of `testnet::testnet_genesis`
 - Import uses `ROOTCHAIN_MAINNET_NAME` instead of `ROOTCHAIN_TESTNET_NAME`
 - Function is named `mainnet_config()` instead of `testnet_config()`
@@ -134,6 +135,7 @@ Add `pub mod {module_name};` to `node/src/chain_spec/{network}/mod.rs`.
 Add a new match arm to the `load_spec` function in `node/src/command.rs`, in the appropriate network section.
 
 - **testnet section**: Under the `// testnet` comment, add in alphabetical order:
+
   ```rust
   "{chain_id_slug}" => Box::new(chain_spec::testnet::{module_name}::testnet_config()),
   ```
@@ -150,6 +152,7 @@ Note: If the chain ID slug contains `-` and the module name uses `_` (e.g. `mirr
 Add a new entry to the `chain_specs` associative array in `dev-support/containers/debian/builder/Containerfile`.
 
 Format:
+
 ```bash
 ["{chain_id_slug}"]="{network}.leafchain.{module_name}"
 ```
