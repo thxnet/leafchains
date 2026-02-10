@@ -20,6 +20,7 @@
       ["txd-testnet"]="testnet.leafchain.txd"
       ["sand-testnet"]="testnet.leafchain.sand"
       ["aether-testnet"]="testnet.leafchain.aether"
+      ["ecq-testnet"]="testnet.leafchain.ecq"
       ["izutsuya-testnet"]="testnet.leafchain.izutsuya"
       ["mirrored-body-testnet"]="testnet.leafchain.mirrored_body"
     )
