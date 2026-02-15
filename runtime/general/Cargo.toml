@@ -29,6 +29,8 @@ pallet-nfts = { git = "https://github.com/paritytech/substrate", default-feature
 pallet-nfts-runtime-api = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
+pallet-identity = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
+pallet-trustless-agent = { path = "../../pallets/trustless-agent", default-features = false }
 
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true, branch = "polkadot-v0.9.40" }
@@ -114,6 +116,8 @@ std = [
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-transaction-payment/std",
     "pallet-utility/std",
+    "pallet-identity/std",
+    "pallet-trustless-agent/std",
     "pallet-xcm/std",
     "parachain-info/std",
     "polkadot-parachain/std",
@@ -151,6 +155,8 @@ runtime-benchmarks = [
     "pallet-proxy/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
+    "pallet-identity/runtime-benchmarks",
+    "pallet-trustless-agent/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
     "xcm-builder/runtime-benchmarks",
@@ -179,6 +185,8 @@ try-runtime = [
     "pallet-timestamp/try-runtime",
     "pallet-transaction-payment/try-runtime",
     "pallet-utility/try-runtime",
+    "pallet-identity/try-runtime",
+    "pallet-trustless-agent/try-runtime",
     "pallet-xcm/try-runtime",
     "parachain-info/try-runtime",
 ]

@@ -3082,7 +3082,7 @@ dependencies = [
 
 [[package]]
 name = "general-runtime"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -3108,6 +3108,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-identity",
  "pallet-multisig",
  "pallet-nfts",
  "pallet-nfts-runtime-api",
@@ -3117,6 +3118,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-trustless-agent",
  "pallet-utility",
  "pallet-xcm",
  "parachain-info",
@@ -6374,6 +6376,22 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-trustless-agent"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -11566,7 +11584,7 @@ dependencies = [
 
 [[package]]
 name = "thxnet-leafchain"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "clap",
  "cumulus-client-cli",
