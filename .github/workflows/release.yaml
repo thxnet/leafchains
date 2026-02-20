@@ -11,6 +11,7 @@ defaults:
     shell: bash
 
 env:
+  NIX_CONFIG: "experimental-features = nix-command flakes"
   RUSTC_WRAPPER: sccache
   SCCACHE_BUCKET: sccache
   SCCACHE_ENDPOINT: ${{ secrets.SCCACHE_ENDPOINT }}
@@ -28,9 +29,6 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
-        with:
-          extra_nix_config: |
-            experimental-features = nix-command flakes
 
       - name: Pre Cache
         run: |

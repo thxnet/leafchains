@@ -13,6 +13,9 @@ on:
 
   pull_request:
 
+env:
+  NIX_CONFIG: "experimental-features = nix-command flakes"
+
 jobs:
   build-nix-flake:
     name: Build Nix Flake
@@ -24,7 +27,6 @@ jobs:
         uses: cachix/install-nix-action@v27
         with:
           extra_nix_config: |
-            experimental-features = nix-command flakes
             access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Nix Flake
