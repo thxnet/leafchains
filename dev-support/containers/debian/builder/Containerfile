@@ -2,6 +2,8 @@
 
 FROM substrate-based AS builder
 
+COPY --from=sccache /usr/bin/sccache /usr/bin/sccache
+
 WORKDIR /build
 COPY . /build
 
@@ -10,6 +12,7 @@ ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 ARG SCCACHE_BUCKET
 ARG SCCACHE_ENDPOINT
+ARG SCCACHE_REGION
 ARG SCCACHE_S3_USE_SSL
 
 RUN cargo build --locked --release
@@ -29,12 +32,14 @@ chain_specs+=(
   ["activa-mainnet"]="mainnet.leafchain.activa"
   ["mirrored-body-mainnet"]="mainnet.leafchain.mirrored_body"
   ["avatect-mainnet"]="mainnet.leafchain.avatect"
+  ["ecq-mainnet"]="mainnet.leafchain.ecq"
 
   ["thx-testnet"]="testnet.leafchain.thx"
   ["lmt-testnet"]="testnet.leafchain.lmt"
   ["txd-testnet"]="testnet.leafchain.txd"
   ["sand-testnet"]="testnet.leafchain.sand"
   ["aether-testnet"]="testnet.leafchain.aether"
+  ["ecq-testnet"]="testnet.leafchain.ecq"
   ["izutsuya-testnet"]="testnet.leafchain.izutsuya"
   ["mirrored-body-testnet"]="testnet.leafchain.mirrored_body"
 )

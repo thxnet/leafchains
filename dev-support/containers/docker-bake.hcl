@@ -22,6 +22,7 @@ target "builder" {
   target     = "builder"
   contexts = {
     substrate-based = "docker-image://ghcr.io/thxnet/ci-containers/substrate-based:build-2023.06.30-bd9d7aa"
+    sccache         = "docker-image://ghcr.io/thxnet/ci-containers/sccache:0.14.0"
   }
   args = {
     DEBUG                 = "${DEBUG}"
@@ -30,6 +31,7 @@ target "builder" {
     AWS_SECRET_ACCESS_KEY = null
     SCCACHE_BUCKET        = null
     SCCACHE_ENDPOINT      = null
+    SCCACHE_REGION        = null
     SCCACHE_S3_USE_SSL    = null
   }
   platforms = ["linux/amd64"]

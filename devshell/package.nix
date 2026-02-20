@@ -35,6 +35,9 @@ rustPlatform.buildRustPackage {
 
   SUBSTRATE_CLI_GIT_COMMIT_HASH = "";
 
+  # Override .cargo/config.toml rustc-wrapper since sccache is not available in the Nix sandbox
+  RUSTC_WRAPPER = "";
+
   CARGO_NET_OFFLINE = "true";
   SKIP_WASM_BUILD = "true";
 }

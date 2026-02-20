@@ -71,6 +71,9 @@
 
             SUBSTRATE_CLI_GIT_COMMIT_HASH = "";
             SKIP_WASM_BUILD = "true";
+
+            # Override .cargo/config.toml rustc-wrapper since sccache is not available in the Nix sandbox
+            RUSTC_WRAPPER = "";
           };
           cargoArtifacts = craneLib.buildDepsOnly commonArgs;
         in

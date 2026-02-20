@@ -10,6 +10,15 @@ defaults:
   run:
     shell: bash
 
+env:
+  RUSTC_WRAPPER: sccache
+  SCCACHE_BUCKET: sccache
+  SCCACHE_ENDPOINT: ${{ secrets.SCCACHE_ENDPOINT }}
+  SCCACHE_S3_USE_SSL: "true"
+  SCCACHE_REGION: auto
+  AWS_ACCESS_KEY_ID: ${{ secrets.MINIO_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.MINIO_SECRET_ACCESS_KEY }}
+
 jobs:
   all:
     name: Release
@@ -33,10 +42,18 @@ jobs:
             ~/.cargo/git/db/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Show sccache version
+        run: |
+          nix develop --command sccache --version
+
       - name: Build WASM runtimes
         run: |
           nix develop --command bash -c "WASM_TARGET_DIRECTORY=$(pwd) cargo build --release --package general-runtime"
           mv general_runtime.wasm general-runtime.wasm
+
+      - name: Show sccache stats
+        run: |
+          nix develop --command sccache --show-stats
 
       - name: Publish WASM runtimes
         uses: softprops/action-gh-release@v1

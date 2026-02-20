@@ -13,12 +13,14 @@
       ["activa-mainnet"]="mainnet.leafchain.activa"
       ["mirrored-body-mainnet"]="mainnet.leafchain.mirrored_body"
       ["avatect-mainnet"]="mainnet.leafchain.avatect"
+      ["ecq-mainnet"]="mainnet.leafchain.ecq"
 
       ["thx-testnet"]="testnet.leafchain.thx"
       ["lmt-testnet"]="testnet.leafchain.lmt"
       ["txd-testnet"]="testnet.leafchain.txd"
       ["sand-testnet"]="testnet.leafchain.sand"
       ["aether-testnet"]="testnet.leafchain.aether"
+      ["ecq-testnet"]="testnet.leafchain.ecq"
       ["izutsuya-testnet"]="testnet.leafchain.izutsuya"
       ["mirrored-body-testnet"]="testnet.leafchain.mirrored_body"
     )
