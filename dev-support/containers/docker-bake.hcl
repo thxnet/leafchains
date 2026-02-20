@@ -31,6 +31,7 @@ target "builder" {
     AWS_SECRET_ACCESS_KEY = null
     SCCACHE_BUCKET        = null
     SCCACHE_ENDPOINT      = null
+    SCCACHE_REGION        = null
     SCCACHE_S3_USE_SSL    = null
   }
   platforms = ["linux/amd64"]
