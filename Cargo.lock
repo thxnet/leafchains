@@ -3082,7 +3082,7 @@ dependencies = [
 
 [[package]]
 name = "general-runtime"
-version = "0.3.0"
+version = "0.3.2"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -11566,7 +11566,7 @@ dependencies = [
 
 [[package]]
 name = "thxnet-leafchain"
-version = "0.3.0"
+version = "0.3.2"
 dependencies = [
  "clap",
  "cumulus-client-cli",
