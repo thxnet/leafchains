@@ -29,7 +29,7 @@ concurrency:
 jobs:
   image:
     name: Build and publish images
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner]
     permissions:
       contents: read
       packages: write

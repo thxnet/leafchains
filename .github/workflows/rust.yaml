@@ -30,7 +30,7 @@ concurrency:
 jobs:
   rustfmt:
     name: Check Rust format
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner]
     steps:
       - uses: actions/checkout@v3
 
@@ -82,7 +82,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner]
     needs:
       - rustfmt
     steps:
@@ -122,7 +122,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner]
     needs:
       - clippy
       # - udeps

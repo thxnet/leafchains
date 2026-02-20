@@ -18,7 +18,7 @@ env:
 jobs:
   format:
     name: Lint format
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner]
     steps:
       - uses: actions/checkout@v3
 
@@ -50,7 +50,7 @@ jobs:
 
   commit:
     name: Lint commit
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -63,7 +63,7 @@ jobs:
 
   codespell:
     name: Codespell
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hetzner]
     steps:
       - uses: actions/checkout@v3
 
