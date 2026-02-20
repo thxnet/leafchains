@@ -36,6 +36,9 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
       - name: Show rustfmt version
         run: |
@@ -90,6 +93,9 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
       - name: Pre Cache
         run: |
@@ -142,6 +148,9 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
 
       - name: Pre Cache
         run: |
