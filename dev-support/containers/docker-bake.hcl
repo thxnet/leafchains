@@ -22,6 +22,7 @@ target "builder" {
   target     = "builder"
   contexts = {
     substrate-based = "docker-image://ghcr.io/thxnet/ci-containers/substrate-based:build-2023.06.30-bd9d7aa"
+    sccache         = "docker-image://ghcr.io/thxnet/ci-containers/sccache:0.14.0"
   }
   args = {
     DEBUG                 = "${DEBUG}"

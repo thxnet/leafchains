@@ -109,7 +109,7 @@ jobs:
             builder.args.AWS_SECRET_ACCESS_KEY=${{ env.MINIO_SECRET_ACCESS_KEY }}
             builder.args.SCCACHE_BUCKET=${{ env.SCCACHE_BUCKET }}
             builder.args.SCCACHE_ENDPOINT=${{ env.SCCACHE_ENDPOINT }}
-            builder.args.SCCACHE_S3_USE_SSL=false
+            builder.args.SCCACHE_S3_USE_SSL=true
 
           files: |
             ./dev-support/containers/docker-bake.hcl

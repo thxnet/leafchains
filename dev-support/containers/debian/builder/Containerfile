@@ -2,6 +2,8 @@
 
 FROM substrate-based AS builder
 
+COPY --from=sccache /usr/bin/sccache /usr/bin/sccache
+
 WORKDIR /build
 COPY . /build
 
