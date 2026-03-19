@@ -30,6 +30,12 @@ pallet-nfts-runtime-api = { git = "https://github.com/paritytech/substrate", def
 pallet-proxy = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 pallet-utility = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 
+# Custom pallets
+pallet-rwa = { path = "../../pallets/rwa", default-features = false }
+pallet-rwa-runtime-api = { path = "../../pallets/rwa/runtime-api", default-features = false }
+pallet-crowdfunding = { path = "../../pallets/crowdfunding", default-features = false }
+pallet-crowdfunding-runtime-api = { path = "../../pallets/crowdfunding/runtime-api", default-features = false }
+
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", default-features = false, optional = true, branch = "polkadot-v0.9.40" }
 frame-executive = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
@@ -114,6 +120,10 @@ std = [
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-transaction-payment/std",
     "pallet-utility/std",
+    "pallet-rwa/std",
+    "pallet-rwa-runtime-api/std",
+    "pallet-crowdfunding/std",
+    "pallet-crowdfunding-runtime-api/std",
     "pallet-xcm/std",
     "parachain-info/std",
     "polkadot-parachain/std",
@@ -151,6 +161,8 @@ runtime-benchmarks = [
     "pallet-proxy/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
+    "pallet-rwa/runtime-benchmarks",
+    "pallet-crowdfunding/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
     "xcm-builder/runtime-benchmarks",
@@ -179,6 +191,8 @@ try-runtime = [
     "pallet-timestamp/try-runtime",
     "pallet-transaction-payment/try-runtime",
     "pallet-utility/try-runtime",
+    "pallet-rwa/try-runtime",
+    "pallet-crowdfunding/try-runtime",
     "pallet-xcm/try-runtime",
     "parachain-info/try-runtime",
 ]

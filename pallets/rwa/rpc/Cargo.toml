@@ -1,0 +1,20 @@
+[package]
+name = "pallet-rwa-rpc"
+version.workspace = true
+authors.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+codec = { package = "parity-scale-codec", version = "3.0.0" }
+jsonrpsee = { version = "0.16.2", features = ["client-core", "server", "macros"] }
+serde = { version = "1.0.152", features = ["derive"] }
+
+sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+sp-blockchain = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
+
+pallet-rwa = { path = ".." }
+pallet-rwa-runtime-api = { path = "../runtime-api" }

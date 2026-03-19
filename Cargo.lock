@@ -3082,7 +3082,7 @@ dependencies = [
 
 [[package]]
 name = "general-runtime"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -3108,10 +3108,14 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-crowdfunding",
+ "pallet-crowdfunding-runtime-api",
  "pallet-multisig",
  "pallet-nfts",
  "pallet-nfts-runtime-api",
  "pallet-proxy",
+ "pallet-rwa",
+ "pallet-rwa-runtime-api",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
@@ -5696,6 +5700,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-crowdfunding"
+version = "0.3.3"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "pallet-assets",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-crowdfunding-rpc"
+version = "0.3.3"
+dependencies = [
+ "jsonrpsee",
+ "log",
+ "pallet-crowdfunding",
+ "pallet-crowdfunding-runtime-api",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
+name = "pallet-crowdfunding-runtime-api"
+version = "0.3.3"
+dependencies = [
+ "pallet-crowdfunding",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-democracy"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.40#76fed9b9082daade5392663f25ed8968f8e8c11c"
@@ -6125,6 +6174,51 @@ dependencies = [
  "serde",
  "sp-arithmetic",
  "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-rwa"
+version = "0.3.3"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-assets",
+ "pallet-balances",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-rwa-rpc"
+version = "0.3.3"
+dependencies = [
+ "jsonrpsee",
+ "pallet-rwa",
+ "pallet-rwa-runtime-api",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
+name = "pallet-rwa-runtime-api"
+version = "0.3.3"
+dependencies = [
+ "pallet-rwa",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
  "sp-runtime",
  "sp-std",
 ]
@@ -11566,7 +11660,7 @@ dependencies = [
 
 [[package]]
 name = "thxnet-leafchain"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "clap",
  "cumulus-client-cli",
@@ -11583,6 +11677,10 @@ dependencies = [
  "jsonrpsee",
  "pallet-asset-tx-payment",
  "pallet-assets",
+ "pallet-crowdfunding-rpc",
+ "pallet-crowdfunding-runtime-api",
+ "pallet-rwa-rpc",
+ "pallet-rwa-runtime-api",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
  "polkadot-cli",
