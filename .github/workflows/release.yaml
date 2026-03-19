@@ -23,7 +23,7 @@ env:
 jobs:
   all:
     name: Release
-    runs-on: [self-hosted, hetzner]
+    runs-on: [hetzner]
     steps:
       - uses: actions/checkout@v3
 
