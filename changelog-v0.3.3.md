@@ -26,14 +26,14 @@ pallets/rwa/rpc/
 
 Multiple fixes to stabilize CI on the self-hosted Hetzner infrastructure:
 
-| Commit | Fix |
-|--------|-----|
-| `c053d50` | Switch all workflow runners to self-hosted Hetzner |
-| `ce109c4` | Enable Nix experimental features for self-hosted runners |
+| Commit    | Fix                                                       |
+| --------- | --------------------------------------------------------- |
+| `c053d50` | Switch all workflow runners to self-hosted Hetzner        |
+| `ce109c4` | Enable Nix experimental features for self-hosted runners  |
 | `b59f022` | Use `NIX_CONFIG` env var to enable nix-command and flakes |
-| `ad27c18` | Use `[hetzner]` runner selector to match rootchain |
-| `97d0a70` | Install `xz-utils` before Nix on hetzner runners |
-| `e37cb63` | Add Node.js setup before prettier action |
+| `ad27c18` | Use `[hetzner]` runner selector to match rootchain        |
+| `97d0a70` | Install `xz-utils` before Nix on hetzner runners          |
+| `e37cb63` | Add Node.js setup before prettier action                  |
 
 ## 3. Version Bump
 
