@@ -13,12 +13,19 @@ on:
 
   pull_request:
 
+env:
+  NIX_CONFIG: "experimental-features = nix-command flakes"
+
 jobs:
   build-nix-flake:
     name: Build Nix Flake
-    runs-on: ubuntu-latest
+    runs-on: [hetzner]
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y xz-utils
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27

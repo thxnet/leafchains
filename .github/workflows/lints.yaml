@@ -14,13 +14,18 @@ on:
 
 env:
   CI: 1
+  NIX_CONFIG: "experimental-features = nix-command flakes"
 
 jobs:
   format:
     name: Lint format
-    runs-on: ubuntu-latest
+    runs-on: [hetzner]
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y xz-utils
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
@@ -42,6 +47,11 @@ jobs:
         run: |
           nixpkgs-fmt --check .
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Run prettier
         uses: creyD/prettier_action@v4.3
         with:
@@ -50,7 +60,7 @@ jobs:
 
   commit:
     name: Lint commit
-    runs-on: ubuntu-latest
+    runs-on: [hetzner]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -63,7 +73,7 @@ jobs:
 
   codespell:
     name: Codespell
-    runs-on: ubuntu-latest
+    runs-on: [hetzner]
     steps:
       - uses: actions/checkout@v3
 

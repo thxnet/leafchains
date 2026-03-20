@@ -17,8 +17,8 @@ use frame_support::{
     dispatch::DispatchClass,
     parameter_types,
     traits::{
-        tokens::nonfungibles_v2::Inspect, AsEnsureOriginWithArg, ConstU128, ConstU32, ConstU64,
-        Everything, InstanceFilter,
+        tokens::nonfungibles_v2::Inspect, AsEnsureOriginWithArg, ConstU128, ConstU16, ConstU32,
+        ConstU64, Everything, InstanceFilter,
     },
     weights::{constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight},
     PalletId, RuntimeDebug,
@@ -155,7 +155,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("thxnet-general-runtime"),
     impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
-    spec_version: 2,
+    spec_version: 3,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -646,6 +646,216 @@ impl pallet_proxy::Config for Runtime {
     type WeightInfo = weights::pallet_proxy::WeightInfo<Runtime>;
 }
 
+// ── pallet-rwa ──────────────────────────────────────────────────────────
+
+parameter_types! {
+    pub const RwaPalletId: PalletId = PalletId(*b"py/rwaaa");
+    pub const AssetRegistrationDeposit: Balance = 100 * DOLLARS;
+    pub const MaxAssetsPerOwner: u32 = 100;
+    pub const RwaMaxMetadataLen: u32 = 256;
+    pub const MaxSlashRecipients: u32 = 5;
+    pub const MaxGroupSize: u32 = 10;
+    pub const MaxPendingApprovals: u32 = 100;
+    pub const MaxSunsettingPerBlock: u32 = 50;
+    pub const MaxParticipationsPerHolder: u32 = 50;
+    /// V5: minimum deposit required for participation policies (1 DOLLAR).
+    pub const MinParticipationDeposit: Balance = 1 * DOLLARS;
+}
+
+/// CRIT-03: Lifecycle guard that prevents retiring an RWA asset or slashing
+/// a participation while non-terminal crowdfunding campaigns are linked to it.
+pub struct CrowdfundingLifecycleGuard;
+
+impl CrowdfundingLifecycleGuard {
+    /// Returns `true` if the campaign status is non-terminal, meaning the
+    /// campaign is still active and should block destructive RWA operations.
+    fn is_non_terminal(status: pallet_crowdfunding::CampaignStatus) -> bool {
+        matches!(
+            status,
+            pallet_crowdfunding::CampaignStatus::Funding
+                | pallet_crowdfunding::CampaignStatus::Paused
+                | pallet_crowdfunding::CampaignStatus::Succeeded
+                | pallet_crowdfunding::CampaignStatus::MilestonePhase
+        )
+    }
+}
+
+impl pallet_rwa::AssetLifecycleGuard<AccountId> for CrowdfundingLifecycleGuard {
+    fn can_retire_asset(rwa_asset_id: u32) -> frame_support::dispatch::DispatchResult {
+        // Iterate all campaigns to check if any non-terminal campaign is
+        // linked to this RWA asset.
+        for (_id, campaign) in pallet_crowdfunding::Campaigns::<Runtime>::iter() {
+            if campaign.rwa_asset_id == Some(rwa_asset_id) && Self::is_non_terminal(campaign.status)
+            {
+                return Err(sp_runtime::DispatchError::Other("ActiveCampaignLinkedToAsset"));
+            }
+        }
+        Ok(())
+    }
+
+    fn can_slash_participation(
+        rwa_asset_id: u32,
+        participation_id: u32,
+    ) -> frame_support::dispatch::DispatchResult {
+        // Iterate all campaigns to check if any non-terminal campaign is
+        // linked to this specific RWA asset + participation pair.
+        for (_id, campaign) in pallet_crowdfunding::Campaigns::<Runtime>::iter() {
+            if campaign.rwa_asset_id == Some(rwa_asset_id)
+                && campaign.participation_id == Some(participation_id)
+                && Self::is_non_terminal(campaign.status)
+            {
+                return Err(sp_runtime::DispatchError::Other(
+                    "ActiveCampaignLinkedToParticipation",
+                ));
+            }
+        }
+        Ok(())
+    }
+}
+
+impl pallet_rwa::Config for Runtime {
+    type AdminOrigin = EnsureRoot<AccountId>;
+    type AssetId = u32;
+    type AssetLifecycleGuard = CrowdfundingLifecycleGuard;
+    type AssetRegistrationDeposit = AssetRegistrationDeposit;
+    type ForceOrigin = EnsureRoot<AccountId>;
+    type Fungibles = Assets;
+    type MaxAssetsPerOwner = MaxAssetsPerOwner;
+    type MaxGroupSize = MaxGroupSize;
+    type MaxMetadataLen = RwaMaxMetadataLen;
+    type MaxParticipationsPerHolder = MaxParticipationsPerHolder;
+    type MaxPendingApprovals = MaxPendingApprovals;
+    type MaxSlashRecipients = MaxSlashRecipients;
+    type MaxSunsettingPerBlock = MaxSunsettingPerBlock;
+    type MinParticipationDeposit = MinParticipationDeposit;
+    type NativeCurrency = Balances;
+    type PalletId = RwaPalletId;
+    type ParticipationFilter = ();
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_rwa::weights::SubstrateWeight<Runtime>;
+}
+
+// ── pallet-crowdfunding ─────────────────────────────────────────────────
+
+parameter_types! {
+    pub const CrowdfundingPalletId: PalletId = PalletId(*b"py/crwdf");
+    pub const CampaignCreationDeposit: Balance = 50 * DOLLARS;
+    pub const MaxCampaignsPerCreator: u32 = 20;
+    pub const MinCampaignDuration: BlockNumber = 1 * DAYS;
+    pub const MaxCampaignDuration: BlockNumber = 90 * DAYS;
+    pub const EarlyWithdrawalPenaltyBps: u16 = 100; // 1%
+    pub const CfMaxMilestones: u32 = 10;
+    pub const MaxEligibilityRules: u32 = 5;
+    pub const MaxNftSets: u32 = 5;
+    pub const MaxNftsPerSet: u32 = 5;
+    pub const MaxInvestmentsPerInvestor: u32 = 50;
+    pub const MaxWhitelistSize: u32 = 500;
+    // TODO(BEFORE-MAINNET): Replace with actual treasury / multisig account.
+    // The all-zeros address is an uncontrollable burn address — 2 % of all
+    // campaign proceeds are irrecoverably lost until this is updated via
+    // governance before mainnet deployment.
+    pub ProtocolFeeRecipientAccount: AccountId = AccountId::from([0u8; 32]);
+}
+
+/// License verifier that checks pallet-rwa participation status AND asset
+/// status (V1 fix: asset must be Active).
+pub struct RwaLicenseVerifier;
+
+impl pallet_crowdfunding::LicenseVerifier<AccountId, BlockNumber> for RwaLicenseVerifier {
+    fn ensure_active_license(
+        rwa_asset_id: u32,
+        participation_id: u32,
+        who: &AccountId,
+    ) -> frame_support::dispatch::DispatchResult {
+        // V1 fix: check asset-level status BEFORE checking participation.
+        let asset = pallet_rwa::RwaAssets::<Runtime>::get(rwa_asset_id)
+            .ok_or(sp_runtime::DispatchError::Other("AssetNotFound"))?;
+        frame_support::ensure!(
+            matches!(asset.status, pallet_rwa::AssetStatus::Active),
+            sp_runtime::DispatchError::Other("AssetNotActive"),
+        );
+
+        let p = pallet_rwa::Participations::<Runtime>::get(rwa_asset_id, participation_id)
+            .ok_or(sp_runtime::DispatchError::Other("ParticipationNotFound"))?;
+
+        // Verify the caller is either the payer or a holder.
+        let is_authorized = p.payer == *who || p.holders.iter().any(|h| h == who);
+        frame_support::ensure!(is_authorized, sp_runtime::DispatchError::Other("NotLicenseHolder"));
+
+        // Check effective status (with lazy expiry awareness).
+        match &p.status {
+            pallet_rwa::ParticipationStatus::Active { expires_at, .. } => {
+                if let Some(expiry) = expires_at {
+                    let now = System::block_number();
+                    frame_support::ensure!(
+                        now < *expiry,
+                        sp_runtime::DispatchError::Other("LicenseExpired"),
+                    );
+                }
+                Ok(())
+            }
+            _ => Err(sp_runtime::DispatchError::Other("LicenseNotActive")),
+        }
+    }
+
+    fn is_license_active(rwa_asset_id: u32, participation_id: u32) -> bool {
+        // V1 fix: check asset-level status first.
+        let asset_active = pallet_rwa::RwaAssets::<Runtime>::get(rwa_asset_id)
+            .map_or(false, |a| matches!(a.status, pallet_rwa::AssetStatus::Active));
+        if !asset_active {
+            return false;
+        }
+        pallet_rwa::Participations::<Runtime>::get(rwa_asset_id, participation_id).map_or(
+            false,
+            |p| match &p.status {
+                pallet_rwa::ParticipationStatus::Active { expires_at, .. } => {
+                    expires_at.map_or(true, |exp| System::block_number() < exp)
+                }
+                _ => false,
+            },
+        )
+    }
+
+    fn license_expiry(rwa_asset_id: u32, participation_id: u32) -> Option<BlockNumber> {
+        // V2 fix: return the participation's expires_at block.
+        pallet_rwa::Participations::<Runtime>::get(rwa_asset_id, participation_id).and_then(|p| {
+            match p.status {
+                pallet_rwa::ParticipationStatus::Active { expires_at, .. } => expires_at,
+                _ => None,
+            }
+        })
+    }
+}
+
+impl pallet_crowdfunding::Config for Runtime {
+    type AdminOrigin = EnsureRoot<AccountId>;
+    type AssetId = u32;
+    type CampaignCreationDeposit = CampaignCreationDeposit;
+    type CollectionId = u32;
+    type EarlyWithdrawalPenaltyBps = EarlyWithdrawalPenaltyBps;
+    type ForceOrigin = EnsureRoot<AccountId>;
+    type Fungibles = Assets;
+    type ItemId = u32;
+    type LicenseVerifier = RwaLicenseVerifier;
+    type MaxCampaignDuration = MaxCampaignDuration;
+    type MaxCampaignsPerCreator = MaxCampaignsPerCreator;
+    type MaxEligibilityRules = MaxEligibilityRules;
+    type MaxInvestmentsPerInvestor = MaxInvestmentsPerInvestor;
+    type MaxMilestones = CfMaxMilestones;
+    type MaxNftSets = MaxNftSets;
+    type MaxNftsPerSet = MaxNftsPerSet;
+    type MaxWhitelistSize = MaxWhitelistSize;
+    type MilestoneApprover = EnsureRoot<AccountId>;
+    type MinCampaignDuration = MinCampaignDuration;
+    type NativeCurrency = Balances;
+    type NftInspect = Nfts;
+    type PalletId = CrowdfundingPalletId;
+    type ProtocolFeeBps = ConstU16<200>;
+    type ProtocolFeeRecipient = ProtocolFeeRecipientAccount;
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = pallet_crowdfunding::weights::SubstrateWeight<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously
 // configured.
 construct_runtime!(
@@ -687,6 +897,10 @@ construct_runtime!(
         CumulusXcm: cumulus_pallet_xcm = 32,
         DmpQueue: cumulus_pallet_dmp_queue = 33,
 
+        // Custom pallets.
+        Rwa: pallet_rwa = 40,
+        Crowdfunding: pallet_crowdfunding = 41,
+
         Sudo: pallet_sudo = 255,
     }
 );
@@ -705,6 +919,8 @@ mod benches {
         [pallet_timestamp, Timestamp]
         [pallet_collator_selection, CollatorSelection]
         [cumulus_pallet_xcmp_queue, XcmpQueue]
+        [pallet_rwa, Rwa]
+        [pallet_crowdfunding, Crowdfunding]
     );
 }
 
@@ -847,6 +1063,198 @@ impl_runtime_apis! {
     {
         fn account_balances(account: AccountId) -> Vec<(u32, Balance)> {
             Assets::account_balances(account)
+        }
+    }
+
+    impl pallet_rwa_runtime_api::RwaApi<Block, AccountId, Balance, BlockNumber, u32> for Runtime {
+        fn effective_participation_status(
+            asset_id: u32,
+            participation_id: u32,
+        ) -> Option<pallet_rwa::ParticipationStatus<BlockNumber>> {
+            let p = pallet_rwa::Participations::<Runtime>::get(asset_id, participation_id)?;
+            if let pallet_rwa::ParticipationStatus::Active { expires_at: Some(expiry), .. } = &p.status {
+                let now = System::block_number();
+                if now >= *expiry {
+                    return Some(pallet_rwa::ParticipationStatus::Expired);
+                }
+            }
+            Some(p.status)
+        }
+
+        fn can_participate(
+            asset_id: u32,
+            who: AccountId,
+        ) -> Result<(), pallet_rwa::CanParticipateError> {
+            let asset = pallet_rwa::RwaAssets::<Runtime>::get(asset_id)
+                .ok_or(pallet_rwa::CanParticipateError::AssetNotFound)?;
+            if !matches!(asset.status, pallet_rwa::AssetStatus::Active) {
+                return Err(pallet_rwa::CanParticipateError::AssetNotActive);
+            }
+            if let Some(max) = asset.policy.max_participants {
+                if asset.participant_count >= max {
+                    return Err(pallet_rwa::CanParticipateError::MaxParticipantsReached);
+                }
+            }
+            if pallet_rwa::HolderIndex::<Runtime>::contains_key(asset_id, &who) {
+                return Err(pallet_rwa::CanParticipateError::AlreadyParticipating);
+            }
+            // TODO: Add ParticipationFilter::ensure_eligible() check when a real filter
+            // is configured. Currently ParticipationFilter = () (blanket pass-through)
+            // so this has no practical impact, but the check should be added here once a
+            // real KYC/whitelist filter is wired up in the runtime configuration.
+            Ok(())
+        }
+
+        fn assets_by_owner(owner: AccountId) -> Vec<u32> {
+            pallet_rwa::OwnerAssets::<Runtime>::get(&owner).into_inner()
+        }
+
+        fn participations_by_holder(holder: AccountId) -> Vec<(u32, u32)> {
+            let asset_ids = pallet_rwa::HolderAssets::<Runtime>::get(&holder);
+            asset_ids.iter().filter_map(|&aid| {
+                pallet_rwa::HolderIndex::<Runtime>::get(aid, &holder).map(|pid| (aid, pid))
+            }).collect()
+        }
+
+        fn active_participant_count(asset_id: u32) -> u32 {
+            // Iterate all participations for the asset and count only those that
+            // are truly active after applying lazy expiry logic.
+            // A participation stored as Active with expires_at <= current block
+            // is logically Expired and must NOT be counted.
+            let now = System::block_number();
+            pallet_rwa::Participations::<Runtime>::iter_prefix(asset_id)
+                .filter(|(_pid, p)| {
+                    matches!(
+                        p.status,
+                        pallet_rwa::ParticipationStatus::Active { expires_at, .. }
+                        if expires_at.map_or(true, |exp| now < exp)
+                    )
+                })
+                .count() as u32
+        }
+    }
+
+    impl pallet_crowdfunding_runtime_api::CrowdfundingApi<Block, AccountId, Balance, BlockNumber, u32> for Runtime {
+        fn check_eligibility(
+            campaign_id: u32,
+            who: AccountId,
+        ) -> Result<(), pallet_crowdfunding::EligibilityError> {
+            let campaign = pallet_crowdfunding::Campaigns::<Runtime>::get(campaign_id)
+                .ok_or(pallet_crowdfunding::EligibilityError::CampaignNotFound)?;
+            for rule in campaign.eligibility_rules.iter() {
+                match rule {
+                    pallet_crowdfunding::EligibilityRule::NativeBalance { min_balance } => {
+                        if Balances::free_balance(&who) < *min_balance {
+                            return Err(pallet_crowdfunding::EligibilityError::InsufficientNativeBalance);
+                        }
+                    },
+                    pallet_crowdfunding::EligibilityRule::AssetBalance { asset_id, min_balance } => {
+                        if Assets::balance(*asset_id, &who) < *min_balance {
+                            return Err(pallet_crowdfunding::EligibilityError::InsufficientAssetBalance);
+                        }
+                    },
+                    pallet_crowdfunding::EligibilityRule::NftOwnership { required_sets } => {
+                        let ok = required_sets.iter().any(|set| {
+                            set.iter().all(|(cid, iid)| {
+                                <Nfts as Inspect<AccountId>>::owner(cid, iid)
+                                    .map_or(false, |o| o == who)
+                            })
+                        });
+                        if !ok {
+                            return Err(pallet_crowdfunding::EligibilityError::NftOwnershipNotMet);
+                        }
+                    },
+                    pallet_crowdfunding::EligibilityRule::AccountWhitelist => {
+                        if !pallet_crowdfunding::CampaignWhitelist::<Runtime>::get(campaign_id, &who) {
+                            return Err(pallet_crowdfunding::EligibilityError::NotWhitelisted);
+                        }
+                    },
+                }
+            }
+            Ok(())
+        }
+
+        fn preview_withdrawal(
+            campaign_id: u32,
+            investor: AccountId,
+            amount: Balance,
+        ) -> Option<pallet_crowdfunding::WithdrawalPreview<Balance>> {
+            let campaign = pallet_crowdfunding::Campaigns::<Runtime>::get(campaign_id)?;
+            let inv = pallet_crowdfunding::Investments::<Runtime>::get(campaign_id, &investor)?;
+            let current = inv.total_invested.saturating_sub(inv.total_withdrawn);
+            if amount > current { return None; }
+            let penalty_bps = campaign.config.early_withdrawal_penalty_bps
+                .unwrap_or_else(|| EarlyWithdrawalPenaltyBps::get());
+            // CAT-4.3-C-B: use Crowdfunding::bps_of() which uses ceiling division
+            let penalty = Crowdfunding::bps_of(amount, penalty_bps);
+            let net = amount.saturating_sub(penalty);
+            Some(pallet_crowdfunding::WithdrawalPreview {
+                gross_amount: amount,
+                penalty,
+                net_amount: net,
+                penalty_bps,
+            })
+        }
+
+        fn campaign_summary(campaign_id: u32) -> Option<pallet_crowdfunding::CampaignSummary<Balance, BlockNumber>> {
+            let c = pallet_crowdfunding::Campaigns::<Runtime>::get(campaign_id)?;
+            let now = System::block_number();
+            let remaining = if now < c.config.deadline {
+                Some(c.config.deadline - now)
+            } else { None };
+
+            let (goal, milestones_completed, milestones_total) = match &c.config.funding_model {
+                pallet_crowdfunding::FundingModel::AllOrNothing { goal } => (Some(*goal), None, None),
+                pallet_crowdfunding::FundingModel::KeepWhatYouRaise { .. } => (None, None, None),
+                pallet_crowdfunding::FundingModel::MilestoneBased { goal, milestones } => {
+                    let total = milestones.len() as u8;
+                    let completed = (0..total).filter(|&i| {
+                        pallet_crowdfunding::MilestoneStatuses::<Runtime>::get(campaign_id, i)
+                            .map_or(false, |s| matches!(s, pallet_crowdfunding::MilestoneStatus::Claimed))
+                    }).count() as u8;
+                    (Some(*goal), Some(completed), Some(total))
+                },
+            };
+
+            let pct_ppm = goal.map_or(1_000_000u32, |g| {
+                if g == 0 { 1_000_000u32 }
+                else {
+                    sp_runtime::Permill::from_rational(c.total_raised, g).deconstruct()
+                }
+            });
+
+            Some(pallet_crowdfunding::CampaignSummary {
+                status: c.status,
+                total_raised: c.total_raised,
+                goal,
+                hard_cap: c.config.hard_cap,
+                investor_count: c.investor_count,
+                remaining_blocks: remaining,
+                funding_percentage_ppm: pct_ppm,
+                milestones_completed,
+                milestones_total,
+                rwa_asset_id: c.rwa_asset_id,
+                participation_id: c.participation_id,
+            })
+        }
+
+        fn campaigns_by_creator(creator: AccountId) -> Vec<u32> {
+            pallet_crowdfunding::CreatorCampaigns::<Runtime>::get(&creator).into_inner()
+        }
+
+        fn campaigns_by_investor(investor: AccountId) -> Vec<u32> {
+            pallet_crowdfunding::InvestorCampaigns::<Runtime>::get(&investor).into_inner()
+        }
+
+        fn get_investment(campaign_id: u32, investor: AccountId) -> Option<pallet_crowdfunding::Investment<Balance>> {
+            pallet_crowdfunding::Investments::<Runtime>::get(campaign_id, &investor)
+        }
+
+        fn get_protocol_config() -> (u16, AccountId) {
+            (
+                Crowdfunding::effective_protocol_fee_bps(),
+                Crowdfunding::effective_protocol_fee_recipient(),
+            )
         }
     }
 

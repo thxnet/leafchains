@@ -14,6 +14,7 @@ on:
   pull_request:
 
 env:
+  NIX_CONFIG: "experimental-features = nix-command flakes"
   CARGO_TERM_COLOR: always
   RUSTC_WRAPPER: sccache
   SCCACHE_BUCKET: sccache
@@ -30,9 +31,13 @@ concurrency:
 jobs:
   rustfmt:
     name: Check Rust format
-    runs-on: ubuntu-latest
+    runs-on: [hetzner]
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y xz-utils
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
@@ -82,11 +87,15 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: [hetzner]
     needs:
       - rustfmt
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y xz-utils
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
@@ -122,7 +131,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: ubuntu-latest
+    runs-on: [hetzner]
     needs:
       - clippy
       # - udeps
@@ -139,6 +148,10 @@ jobs:
           - release
     steps:
       - uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y xz-utils
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27

@@ -5,10 +5,16 @@ panic = "unwind"
 members = [
    "node",
    "runtime/general",
+   "pallets/rwa",
+   "pallets/rwa/runtime-api",
+   "pallets/rwa/rpc",
+   "pallets/crowdfunding",
+   "pallets/crowdfunding/runtime-api",
+   "pallets/crowdfunding/rpc",
 ]
 
 [workspace.package]
-version = "0.3.2"
+version = "0.3.3"
 authors = ["THXLAB PTE. LTD. <contact@thxlab.io>"]
 homepage = "https://thxnet.org/"
 repository = "https://github.com/thxnet/leafchains"

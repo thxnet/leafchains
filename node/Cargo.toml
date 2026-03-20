@@ -20,6 +20,10 @@ jsonrpsee = { version = "0.16.2", features = ["server"] }
 general-runtime = { path = "../runtime/general" }
 pallet-assets = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
 pallet-asset-tx-payment = { git = "https://github.com/paritytech/substrate", default-features = false, branch = "polkadot-v0.9.40" }
+pallet-rwa-rpc = { path = "../pallets/rwa/rpc" }
+pallet-rwa-runtime-api = { path = "../pallets/rwa/runtime-api" }
+pallet-crowdfunding-rpc = { path = "../pallets/crowdfunding/rpc" }
+pallet-crowdfunding-runtime-api = { path = "../pallets/crowdfunding/runtime-api" }
 
 # Substrate
 frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.40" }
