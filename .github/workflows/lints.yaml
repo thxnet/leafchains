@@ -19,7 +19,7 @@ env:
 jobs:
   format:
     name: Lint format
-    runs-on: [hetzner]
+    runs-on: [self-hosted, hetzner-thxnet]
     steps:
       - uses: actions/checkout@v3
 
@@ -60,7 +60,7 @@ jobs:
 
   commit:
     name: Lint commit
-    runs-on: [hetzner]
+    runs-on: [self-hosted, hetzner-thxnet]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -73,7 +73,7 @@ jobs:
 
   codespell:
     name: Codespell
-    runs-on: [hetzner]
+    runs-on: [self-hosted, hetzner-thxnet]
     steps:
       - uses: actions/checkout@v3
 
