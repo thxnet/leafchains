@@ -31,6 +31,13 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
 
+      - name: Clean up stale Nix backup files
+        run: |
+          sudo rm -f /etc/bash.bashrc.backup-before-nix
+          sudo rm -f /etc/bashrc.backup-before-nix
+          sudo rm -f /etc/profile.d/nix.sh.backup-before-nix
+          sudo rm -f /etc/zshrc.backup-before-nix
+
       - name: Install Nix
         uses: cachix/install-nix-action@v27
 
