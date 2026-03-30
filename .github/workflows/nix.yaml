@@ -27,12 +27,13 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
 
-      - name: Clean up stale Nix backup files
+      - name: Ensure Nix is available
         run: |
-          sudo rm -f /etc/bash.bashrc.backup-before-nix
-          sudo rm -f /etc/bashrc.backup-before-nix
-          sudo rm -f /etc/profile.d/nix.sh.backup-before-nix
-          sudo rm -f /etc/zshrc.backup-before-nix
+          if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+            . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+            echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
+            echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+          fi
 
       - name: Install Nix
         uses: cachix/install-nix-action@v27
