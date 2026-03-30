@@ -42,11 +42,13 @@ jobs:
       - name: Ensure Nix is available
         run: |
           # On self-hosted runners, Nix is already installed but not in PATH.
-          # Source the profile so cachix/install-nix-action detects it and skips reinstall.
+          # Source the profile so nix commands work, and restart the daemon
+          # to avoid stale socket issues from previous CI runs.
           if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
             . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
             echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
             echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+            sudo systemctl restart nix-daemon.service nix-daemon.socket || true
           fi
 
       - name: Install Nix
@@ -110,11 +112,13 @@ jobs:
       - name: Ensure Nix is available
         run: |
           # On self-hosted runners, Nix is already installed but not in PATH.
-          # Source the profile so cachix/install-nix-action detects it and skips reinstall.
+          # Source the profile so nix commands work, and restart the daemon
+          # to avoid stale socket issues from previous CI runs.
           if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
             . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
             echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
             echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+            sudo systemctl restart nix-daemon.service nix-daemon.socket || true
           fi
 
       - name: Install Nix
@@ -176,11 +180,13 @@ jobs:
       - name: Ensure Nix is available
         run: |
           # On self-hosted runners, Nix is already installed but not in PATH.
-          # Source the profile so cachix/install-nix-action detects it and skips reinstall.
+          # Source the profile so nix commands work, and restart the daemon
+          # to avoid stale socket issues from previous CI runs.
           if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
             . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
             echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
             echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+            sudo systemctl restart nix-daemon.service nix-daemon.socket || true
           fi
 
       - name: Install Nix

@@ -33,6 +33,7 @@ jobs:
             . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
             echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
             echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+            sudo systemctl restart nix-daemon.service nix-daemon.socket || true
           fi
 
       - name: Install Nix
