@@ -155,7 +155,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("thxnet-general-runtime"),
     impl_name: create_runtime_str!("thxnet-general-runtime"),
     authoring_version: 1,
-    spec_version: 3,
+    spec_version: 4,
     impl_version: 0,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 1,
@@ -741,7 +741,7 @@ parameter_types! {
     pub const CrowdfundingPalletId: PalletId = PalletId(*b"py/crwdf");
     pub const CampaignCreationDeposit: Balance = 50 * DOLLARS;
     pub const MaxCampaignsPerCreator: u32 = 20;
-    pub const MinCampaignDuration: BlockNumber = 1 * DAYS;
+    pub const MinCampaignDuration: BlockNumber = 5;
     pub const MaxCampaignDuration: BlockNumber = 90 * DAYS;
     pub const EarlyWithdrawalPenaltyBps: u16 = 100; // 1%
     pub const CfMaxMilestones: u32 = 10;

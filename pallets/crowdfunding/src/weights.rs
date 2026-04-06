@@ -55,6 +55,7 @@ pub trait WeightInfo {
     fn remove_from_whitelist() -> Weight;
     fn set_protocol_config() -> Weight;
     fn report_license_revoked() -> Weight;
+    fn force_finalize_campaign() -> Weight;
 }
 
 /// Weight functions for `pallet_crowdfunding`.
@@ -282,6 +283,14 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
             .saturating_add(T::DbWeight::get().reads(2))
             .saturating_add(T::DbWeight::get().writes(2))
     }
+
+    /// Storage: Crowdfunding Campaigns (r:1 w:1)
+    fn force_finalize_campaign() -> Weight {
+        // Same storage pattern as finalize_campaign
+        Weight::from_parts(15_000_000, 5080)
+            .saturating_add(T::DbWeight::get().reads(1))
+            .saturating_add(T::DbWeight::get().writes(1))
+    }
 }
 
 /// Fallback weights for testing / development.
@@ -396,5 +405,11 @@ impl WeightInfo for () {
         Weight::from_parts(23_000_000, 8964)
             .saturating_add(RocksDbWeight::get().reads(2))
             .saturating_add(RocksDbWeight::get().writes(2))
+    }
+
+    fn force_finalize_campaign() -> Weight {
+        Weight::from_parts(15_000_000, 5080)
+            .saturating_add(RocksDbWeight::get().reads(1))
+            .saturating_add(RocksDbWeight::get().writes(1))
     }
 }

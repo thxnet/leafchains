@@ -15565,3 +15565,271 @@ mod mece_toppan_campaign_outlives_license {
         });
     }
 }
+
+// ── force_finalize_campaign ─────────────────────────────────────────────
+
+mod force_finalize_campaign {
+    use super::*;
+
+    #[test]
+    fn happy_path_aon_succeeded_before_deadline() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_aon_config(100, 500));
+            assert_ok!(Crowdfunding::invest(RuntimeOrigin::signed(BOB), campaign_id, 500));
+
+            // Still before deadline (block 1), force finalize
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            let campaign = pallet::Campaigns::<Test>::get(campaign_id).unwrap();
+            assert_eq!(campaign.status, CampaignStatus::Succeeded);
+            System::assert_has_event(
+                Event::CampaignForceFinalized {
+                    campaign_id,
+                    status: CampaignStatus::Succeeded,
+                }
+                .into(),
+            );
+        });
+    }
+
+    #[test]
+    fn happy_path_aon_failed_before_deadline() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_aon_config(100, 500));
+            // No investments — goal not met
+
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            let campaign = pallet::Campaigns::<Test>::get(campaign_id).unwrap();
+            assert_eq!(campaign.status, CampaignStatus::Failed);
+            System::assert_has_event(
+                Event::CampaignForceFinalized {
+                    campaign_id,
+                    status: CampaignStatus::Failed,
+                }
+                .into(),
+            );
+        });
+    }
+
+    #[test]
+    fn happy_path_kwyr() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_kwyr_config(100));
+
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            let campaign = pallet::Campaigns::<Test>::get(campaign_id).unwrap();
+            assert_eq!(campaign.status, CampaignStatus::Succeeded);
+        });
+    }
+
+    #[test]
+    fn happy_path_milestone_based() {
+        ExtBuilder::default().build().execute_with(|| {
+            let milestones = vec![
+                crate::Milestone { release_bps: 5000, description_hash: [0u8; 32] },
+                crate::Milestone { release_bps: 5000, description_hash: [0u8; 32] },
+            ];
+            let campaign_id =
+                create_funded_campaign(ALICE, milestone_config(100, 500, milestones));
+            assert_ok!(Crowdfunding::invest(RuntimeOrigin::signed(BOB), campaign_id, 500));
+
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            let campaign = pallet::Campaigns::<Test>::get(campaign_id).unwrap();
+            assert_eq!(campaign.status, CampaignStatus::MilestonePhase);
+            // Milestone statuses should be initialized
+            assert_eq!(
+                pallet::MilestoneStatuses::<Test>::get(campaign_id, 0u8),
+                Some(MilestoneStatus::Pending)
+            );
+            assert_eq!(
+                pallet::MilestoneStatuses::<Test>::get(campaign_id, 1u8),
+                Some(MilestoneStatus::Pending)
+            );
+        });
+    }
+
+    #[test]
+    fn rejects_non_sudo_origin() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_aon_config(100, 500));
+
+            assert_noop!(
+                Crowdfunding::force_finalize_campaign(
+                    RuntimeOrigin::signed(ALICE),
+                    campaign_id,
+                ),
+                sp_runtime::DispatchError::BadOrigin
+            );
+        });
+    }
+
+    #[test]
+    fn rejects_non_funding_campaign() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_aon_config(100, 500));
+            // Cancel it first
+            assert_ok!(Crowdfunding::cancel_campaign(RuntimeOrigin::root(), campaign_id));
+
+            assert_noop!(
+                Crowdfunding::force_finalize_campaign(
+                    RuntimeOrigin::root(),
+                    campaign_id,
+                ),
+                Error::<Test>::InvalidCampaignStatus
+            );
+        });
+    }
+
+    #[test]
+    fn rejects_campaign_not_found() {
+        ExtBuilder::default().build().execute_with(|| {
+            assert_noop!(
+                Crowdfunding::force_finalize_campaign(
+                    RuntimeOrigin::root(),
+                    999,
+                ),
+                Error::<Test>::CampaignNotFound
+            );
+        });
+    }
+
+    #[test]
+    fn creator_can_claim_funds_after_force_finalize() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_aon_config(100, 500));
+            assert_ok!(Crowdfunding::invest(RuntimeOrigin::signed(BOB), campaign_id, 500));
+
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            // Creator should be able to claim funds
+            assert_ok!(Crowdfunding::claim_funds(RuntimeOrigin::signed(ALICE), campaign_id));
+        });
+    }
+
+    #[test]
+    fn investors_can_claim_refund_after_force_finalize_failed() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_aon_config(100, 500));
+            assert_ok!(Crowdfunding::invest(RuntimeOrigin::signed(BOB), campaign_id, 100));
+            // Goal not met
+
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            // Investor should be able to claim refund
+            assert_ok!(Crowdfunding::claim_refund(RuntimeOrigin::signed(BOB), campaign_id));
+        });
+    }
+
+    #[test]
+    fn kwyr_soft_cap_not_met_fails() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, kwyr_config_with_soft_cap(100, 500));
+            // Invest below soft cap
+            assert_ok!(Crowdfunding::invest(RuntimeOrigin::signed(BOB), campaign_id, 100));
+
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            let campaign = pallet::Campaigns::<Test>::get(campaign_id).unwrap();
+            assert_eq!(campaign.status, CampaignStatus::Failed);
+        });
+    }
+
+    #[test]
+    fn milestone_based_goal_not_met_fails() {
+        ExtBuilder::default().build().execute_with(|| {
+            let milestones = vec![
+                crate::Milestone { release_bps: 5000, description_hash: [0u8; 32] },
+                crate::Milestone { release_bps: 5000, description_hash: [0u8; 32] },
+            ];
+            let campaign_id =
+                create_funded_campaign(ALICE, milestone_config(100, 500, milestones));
+            // Invest below goal
+            assert_ok!(Crowdfunding::invest(RuntimeOrigin::signed(BOB), campaign_id, 100));
+
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            let campaign = pallet::Campaigns::<Test>::get(campaign_id).unwrap();
+            assert_eq!(campaign.status, CampaignStatus::Failed);
+            // No milestone statuses should be initialized
+            assert_eq!(pallet::MilestoneStatuses::<Test>::get(campaign_id, 0u8), None);
+        });
+    }
+
+    #[test]
+    fn rejects_paused_campaign() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_aon_config(100, 500));
+            // Pause it (AdminOrigin = EnsureRoot in mock)
+            assert_ok!(Crowdfunding::pause_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            assert_noop!(
+                Crowdfunding::force_finalize_campaign(
+                    RuntimeOrigin::root(),
+                    campaign_id,
+                ),
+                Error::<Test>::InvalidCampaignStatus
+            );
+        });
+    }
+
+    #[test]
+    fn rejects_double_force_finalize() {
+        ExtBuilder::default().build().execute_with(|| {
+            let campaign_id =
+                create_funded_campaign(ALICE, default_aon_config(100, 500));
+
+            assert_ok!(Crowdfunding::force_finalize_campaign(
+                RuntimeOrigin::root(),
+                campaign_id,
+            ));
+
+            // Second force-finalize should fail — no longer Funding
+            assert_noop!(
+                Crowdfunding::force_finalize_campaign(
+                    RuntimeOrigin::root(),
+                    campaign_id,
+                ),
+                Error::<Test>::InvalidCampaignStatus
+            );
+        });
+    }
+}

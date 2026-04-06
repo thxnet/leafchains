@@ -1,6 +1,7 @@
 /// Storage migrations for pallet-crowdfunding.
 pub mod v3 {
     use frame_support::{pallet_prelude::*, traits::OnRuntimeUpgrade, weights::Weight, BoundedVec};
+    use sp_std::vec::Vec;
 
     use crate::{
         pallet::{self, Config},

@@ -33,6 +33,7 @@
 /// returns zero weight when the chain is already at V5.
 pub mod v5 {
     use frame_support::{pallet_prelude::*, traits::OnRuntimeUpgrade, weights::Weight};
+    use sp_std::vec::Vec;
 
     use crate::pallet::{self, Config};
 

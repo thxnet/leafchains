@@ -268,6 +268,9 @@ pub mod pallet {
         /// A campaign was cancelled because its linked RWA license was revoked.
         #[codec(index = 18)]
         CampaignLicenseReported { campaign_id: u32 },
+        /// A campaign was force-finalized by sudo, bypassing the deadline check.
+        #[codec(index = 19)]
+        CampaignForceFinalized { campaign_id: u32, status: CampaignStatus },
     }
 
     // ── Errors ───────────────────────────────────────────────────────
@@ -812,35 +815,7 @@ pub mod pallet {
                 let now = frame_system::Pallet::<T>::block_number();
                 ensure!(now > c.config.deadline, Error::<T>::CampaignStillFunding);
 
-                let new_status = match &c.config.funding_model {
-                    FundingModel::AllOrNothing { goal } => {
-                        if c.total_raised >= *goal {
-                            CampaignStatus::Succeeded
-                        } else {
-                            CampaignStatus::Failed
-                        }
-                    }
-                    FundingModel::KeepWhatYouRaise { soft_cap } => match soft_cap {
-                        Some(cap) if c.total_raised < *cap => CampaignStatus::Failed,
-                        _ => CampaignStatus::Succeeded,
-                    },
-                    FundingModel::MilestoneBased { goal, milestones } => {
-                        if c.total_raised >= *goal {
-                            // initialize milestone statuses
-                            for i in 0..milestones.len() {
-                                MilestoneStatuses::<T>::insert(
-                                    campaign_id,
-                                    i as u8,
-                                    MilestoneStatus::Pending,
-                                );
-                            }
-                            CampaignStatus::MilestonePhase
-                        } else {
-                            CampaignStatus::Failed
-                        }
-                    }
-                };
-
+                let new_status = Self::do_finalize(campaign_id, c);
                 c.status = new_status;
                 Self::deposit_event(Event::CampaignFinalized { campaign_id, status: new_status });
                 Ok(())
@@ -1355,11 +1330,78 @@ pub mod pallet {
             Self::deposit_event(Event::CampaignCancelled { campaign_id });
             Ok(())
         }
+
+        // ─── Force Finalize ─────────────────────────────────────────────
+
+        /// Force-finalize a campaign, bypassing the deadline check.
+        ///
+        /// Requires `ForceOrigin` (sudo).  The finalization outcome is still
+        /// determined by on-chain state (total_raised vs. goal), but the
+        /// deadline constraint is skipped so governance can resolve stuck
+        /// campaigns or accelerate finalization when appropriate.
+        #[pallet::call_index(19)]
+        #[pallet::weight(T::WeightInfo::force_finalize_campaign())]
+        pub fn force_finalize_campaign(
+            origin: OriginFor<T>,
+            campaign_id: u32,
+        ) -> DispatchResult {
+            T::ForceOrigin::ensure_origin(origin)?;
+            Campaigns::<T>::try_mutate(campaign_id, |maybe| -> DispatchResult {
+                let c = maybe.as_mut().ok_or(Error::<T>::CampaignNotFound)?;
+                ensure!(
+                    matches!(c.status, CampaignStatus::Funding),
+                    Error::<T>::InvalidCampaignStatus
+                );
+                // NOTE: deadline check intentionally skipped.
+
+                let new_status = Self::do_finalize(campaign_id, c);
+                c.status = new_status;
+                Self::deposit_event(Event::CampaignForceFinalized {
+                    campaign_id,
+                    status: new_status,
+                });
+                Ok(())
+            })
+        }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────
 
     impl<T: Config> Pallet<T> {
+        /// Determine the finalization outcome for a Funding campaign and
+        /// initialize milestone statuses if applicable.  Returns the new
+        /// `CampaignStatus`.  Caller is responsible for writing it back
+        /// and emitting the appropriate event.
+        fn do_finalize(campaign_id: u32, c: &CampaignOf<T>) -> CampaignStatus {
+            match &c.config.funding_model {
+                FundingModel::AllOrNothing { goal } => {
+                    if c.total_raised >= *goal {
+                        CampaignStatus::Succeeded
+                    } else {
+                        CampaignStatus::Failed
+                    }
+                }
+                FundingModel::KeepWhatYouRaise { soft_cap } => match soft_cap {
+                    Some(cap) if c.total_raised < *cap => CampaignStatus::Failed,
+                    _ => CampaignStatus::Succeeded,
+                },
+                FundingModel::MilestoneBased { goal, milestones } => {
+                    if c.total_raised >= *goal {
+                        for i in 0..milestones.len() {
+                            MilestoneStatuses::<T>::insert(
+                                campaign_id,
+                                i as u8,
+                                MilestoneStatus::Pending,
+                            );
+                        }
+                        CampaignStatus::MilestonePhase
+                    } else {
+                        CampaignStatus::Failed
+                    }
+                }
+            }
+        }
+
         pub fn campaign_account(campaign_id: u32) -> T::AccountId {
             T::PalletId::get().into_sub_account_truncating(campaign_id)
         }
