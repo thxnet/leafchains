@@ -268,7 +268,8 @@ pub mod pallet {
         /// A campaign was cancelled because its linked RWA license was revoked.
         #[codec(index = 18)]
         CampaignLicenseReported { campaign_id: u32 },
-        /// A campaign was force-finalized by sudo, bypassing the deadline check.
+        /// A campaign was force-finalized by sudo, bypassing the deadline
+        /// check.
         #[codec(index = 19)]
         CampaignForceFinalized { campaign_id: u32, status: CampaignStatus },
     }
@@ -1341,10 +1342,7 @@ pub mod pallet {
         /// campaigns or accelerate finalization when appropriate.
         #[pallet::call_index(19)]
         #[pallet::weight(T::WeightInfo::force_finalize_campaign())]
-        pub fn force_finalize_campaign(
-            origin: OriginFor<T>,
-            campaign_id: u32,
-        ) -> DispatchResult {
+        pub fn force_finalize_campaign(origin: OriginFor<T>, campaign_id: u32) -> DispatchResult {
             T::ForceOrigin::ensure_origin(origin)?;
             Campaigns::<T>::try_mutate(campaign_id, |maybe| -> DispatchResult {
                 let c = maybe.as_mut().ok_or(Error::<T>::CampaignNotFound)?;
