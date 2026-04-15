@@ -135,6 +135,11 @@ pub fn run() -> Result<()> {
                 Ok(cmd.run(components.client, config.chain_spec))
             })
         }
+        Some(Subcommand::ForkGenesis(cmd)) => {
+            construct_async_run!(|components, cli, cmd, config| {
+                Ok(cmd.run(components.client, components.backend, config.chain_spec))
+            })
+        }
         Some(Subcommand::ImportBlocks(cmd)) => {
             construct_async_run!(|components, cli, cmd, config| {
                 Ok(cmd.run(components.client, components.import_queue))
