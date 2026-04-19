@@ -29,7 +29,7 @@ concurrency:
 jobs:
   image:
     name: Build and publish images
-    runs-on: [self-hosted, hetzner-thxnet]
+    runs-on: hetzner-thxnet
     permissions:
       contents: read
       packages: write
