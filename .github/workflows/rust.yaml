@@ -41,8 +41,11 @@ jobs:
 
       - name: Prepare Nix cache directory
         run: |
-          sudo mkdir -p "$HOME/.cache"
-          sudo chown -R "$(id -u):$(id -g)" "$HOME/.cache"
+          # ARC ephemeral runner has /home/runner/.cache root-owned with a
+          # read-only sccache-bin mount inside it. Non-recursively chown only
+          # the dirs Nix needs, so we don't touch the sccache mount.
+          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix"
+          sudo chown "$(id -u):$(id -g)" "$HOME/.cache" "$HOME/.cache/nix"
 
       - name: Ensure Nix is available
         run: |
@@ -116,8 +119,11 @@ jobs:
 
       - name: Prepare Nix cache directory
         run: |
-          sudo mkdir -p "$HOME/.cache"
-          sudo chown -R "$(id -u):$(id -g)" "$HOME/.cache"
+          # ARC ephemeral runner has /home/runner/.cache root-owned with a
+          # read-only sccache-bin mount inside it. Non-recursively chown only
+          # the dirs Nix needs, so we don't touch the sccache mount.
+          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix"
+          sudo chown "$(id -u):$(id -g)" "$HOME/.cache" "$HOME/.cache/nix"
 
       - name: Ensure Nix is available
         run: |
@@ -189,8 +195,11 @@ jobs:
 
       - name: Prepare Nix cache directory
         run: |
-          sudo mkdir -p "$HOME/.cache"
-          sudo chown -R "$(id -u):$(id -g)" "$HOME/.cache"
+          # ARC ephemeral runner has /home/runner/.cache root-owned with a
+          # read-only sccache-bin mount inside it. Non-recursively chown only
+          # the dirs Nix needs, so we don't touch the sccache mount.
+          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix"
+          sudo chown "$(id -u):$(id -g)" "$HOME/.cache" "$HOME/.cache/nix"
 
       - name: Ensure Nix is available
         run: |
