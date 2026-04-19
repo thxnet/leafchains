@@ -39,6 +39,11 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
 
+      - name: Prepare Nix cache directory
+        run: |
+          sudo mkdir -p "$HOME/.cache"
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.cache"
+
       - name: Ensure Nix is available
         run: |
           # On self-hosted runners, Nix is already installed but not in PATH.
@@ -109,6 +114,11 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
 
+      - name: Prepare Nix cache directory
+        run: |
+          sudo mkdir -p "$HOME/.cache"
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.cache"
+
       - name: Ensure Nix is available
         run: |
           # On self-hosted runners, Nix is already installed but not in PATH.
@@ -176,6 +186,11 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
+
+      - name: Prepare Nix cache directory
+        run: |
+          sudo mkdir -p "$HOME/.cache"
+          sudo chown -R "$(id -u):$(id -g)" "$HOME/.cache"
 
       - name: Ensure Nix is available
         run: |
