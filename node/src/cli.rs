@@ -15,7 +15,8 @@ pub enum Subcommand {
     /// Export the state of a given block into a chain spec.
     ExportState(sc_cli::ExportStateCmd),
 
-    /// Export a filtered + freshly-seeded fork chain spec from a live node database.
+    /// Export a filtered + freshly-seeded fork chain spec from a live node
+    /// database.
     ForkGenesis(crate::fork_genesis_cmd::ForkGenesisCmd),
 
     /// Import blocks.

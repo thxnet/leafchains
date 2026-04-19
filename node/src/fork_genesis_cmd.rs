@@ -1,23 +1,25 @@
-//! `fork-genesis` subcommand — export a filtered + freshly-seeded fork chain-spec
-//! for a leafchain (parachain).
+//! `fork-genesis` subcommand — export a filtered + freshly-seeded fork
+//! chain-spec for a leafchain (parachain).
 //!
-//! Reads the state at a chosen finalized block, strips consensus-transient storage
-//! via [`chain_spec::fork::filter_forked_storage`], drops `Balances.TotalIssuance`
-//! to avoid divergence, assembles fresh dev-authority genesis storage via
-//! [`chain_spec::fork::assemble_general_fork_genesis`], merges the two (fresh wins
-//! on collision), and emits a raw chain-spec JSON to stdout or `--output` file.
+//! Reads the state at a chosen finalized block, strips consensus-transient
+//! storage via [`chain_spec::fork::filter_forked_storage`], drops
+//! `Balances.TotalIssuance` to avoid divergence, assembles fresh dev-authority
+//! genesis storage via [`chain_spec::fork::assemble_general_fork_genesis`],
+//! merges the two (fresh wins on collision), and emits a raw chain-spec JSON to
+//! stdout or `--output` file.
 //!
 //! Optionally injects the relay-chain spec's `.id` into the output's
 //! top-level `.rootchain` field via `--relay-chain-spec`.
-//! (polkadot-v0.9.40 serialises extensions as top-level fields, not under `.extensions`.)
+//! (polkadot-v0.9.40 serialises extensions as top-level fields, not under
+//! `.extensions`.)
 
+use std::{path::PathBuf, str::FromStr, sync::Arc};
+
+use cumulus_primitives_core::ParaId;
 use sc_cli::{CliConfiguration, DatabaseParams, PruningParams, SharedParams};
 use sc_client_api::{Backend, HeaderBackend, StorageProvider, UsageProvider};
 use sp_core::hashing::twox_128;
 use sp_runtime::{traits::Block as BlockT, BuildStorage};
-use std::{path::PathBuf, str::FromStr, sync::Arc};
-
-use cumulus_primitives_core::ParaId;
 
 use crate::chain_spec;
 
@@ -32,7 +34,8 @@ use crate::chain_spec;
 /// The `--relay-chain-spec` flag is optional: when supplied, its `.id` field is
 /// extracted and injected into the output spec's top-level `.rootchain`, making
 /// the fork spec point at the target relay chain rather than the source chain.
-/// (polkadot-v0.9.40 specs use top-level extension fields, no `.extensions` nesting.)
+/// (polkadot-v0.9.40 specs use top-level extension fields, no `.extensions`
+/// nesting.)
 #[allow(missing_docs)]
 #[derive(Debug, clap::Parser)]
 pub struct ForkGenesisCmd {
@@ -45,7 +48,8 @@ pub struct ForkGenesisCmd {
     #[clap(flatten)]
     pub database_params: DatabaseParams,
 
-    /// ParaId to embed in genesis (required — must match the target fork network)
+    /// ParaId to embed in genesis (required — must match the target fork
+    /// network)
     #[arg(long, value_name = "PARA_ID")]
     pub para_id: u32,
 
@@ -86,10 +90,8 @@ impl ForkGenesisCmd {
         // -----------------------------------------------------------------------
         // 2. Export live state at that block.
         // -----------------------------------------------------------------------
-        let raw =
-            sc_service::chain_ops::export_raw_state(client, hash).map_err(|e| {
-                sc_cli::Error::Input(format!("export_raw_state failed: {}", e))
-            })?;
+        let raw = sc_service::chain_ops::export_raw_state(client, hash)
+            .map_err(|e| sc_cli::Error::Input(format!("export_raw_state failed: {}", e)))?;
 
         // -----------------------------------------------------------------------
         // 3. Filter consensus-transient keys.
@@ -184,17 +186,11 @@ impl ForkGenesisCmd {
 }
 
 impl CliConfiguration for ForkGenesisCmd {
-    fn shared_params(&self) -> &SharedParams {
-        &self.shared_params
-    }
+    fn shared_params(&self) -> &SharedParams { &self.shared_params }
 
-    fn pruning_params(&self) -> Option<&PruningParams> {
-        Some(&self.pruning_params)
-    }
+    fn pruning_params(&self) -> Option<&PruningParams> { Some(&self.pruning_params) }
 
-    fn database_params(&self) -> Option<&DatabaseParams> {
-        Some(&self.database_params)
-    }
+    fn database_params(&self) -> Option<&DatabaseParams> { Some(&self.database_params) }
 }
 
 // ---------------------------------------------------------------------------
@@ -203,8 +199,8 @@ impl CliConfiguration for ForkGenesisCmd {
 
 /// Resolve a block hash from the `--at` argument.
 ///
-/// `"finalized"` → client's current finalized hash (NOT best — per master directive).
-/// Hex string (with or without `0x` prefix) → parsed as `B::Hash`.
+/// `"finalized"` → client's current finalized hash (NOT best — per master
+/// directive). Hex string (with or without `0x` prefix) → parsed as `B::Hash`.
 fn resolve_at<B, C>(at: &str, client: &C) -> sc_cli::Result<B::Hash>
 where
     B: BlockT,
@@ -221,16 +217,16 @@ where
     }
 }
 
-/// Parse the relay chain spec JSON at `relay_path`, extract its top-level `.id` field
-/// (which identifies the relay chain), and inject it into the `output_spec_json` as
-/// the top-level `.rootchain` field.
+/// Parse the relay chain spec JSON at `relay_path`, extract its top-level `.id`
+/// field (which identifies the relay chain), and inject it into the
+/// `output_spec_json` as the top-level `.rootchain` field.
 ///
 /// Returns the mutated JSON string.
 ///
-/// polkadot-v0.9.40 chain specs serialize extensions at the TOP LEVEL of the spec
-/// object (`.rootchain`, `.leafchain_id`), not under an `.extensions` sub-object.
-/// We mutate the top-level object directly via serde_json to avoid fragile string
-/// manipulation.
+/// polkadot-v0.9.40 chain specs serialize extensions at the TOP LEVEL of the
+/// spec object (`.rootchain`, `.leafchain_id`), not under an `.extensions`
+/// sub-object. We mutate the top-level object directly via serde_json to avoid
+/// fragile string manipulation.
 fn inject_relay_rootchain(
     output_spec_json: String,
     relay_path: &std::path::Path,
@@ -244,27 +240,30 @@ fn inject_relay_rootchain(
         ))
     })?;
 
-    // Parse relay spec to extract top-level `.id` — this is the relay chain identifier
-    // that gets written into the leafchain spec's top-level `.rootchain` field.
-    let relay_json: serde_json::Value =
-        serde_json::from_slice(&relay_bytes).map_err(|e| {
-            sc_cli::Error::Input(format!(
-                "failed to parse relay chain spec {}: {}",
-                relay_path.display(),
-                e
-            ))
-        })?;
+    // Parse relay spec to extract top-level `.id` — this is the relay chain
+    // identifier that gets written into the leafchain spec's top-level
+    // `.rootchain` field.
+    let relay_json: serde_json::Value = serde_json::from_slice(&relay_bytes).map_err(|e| {
+        sc_cli::Error::Input(format!(
+            "failed to parse relay chain spec {}: {}",
+            relay_path.display(),
+            e
+        ))
+    })?;
 
     let relay_id = relay_json
         .get("id")
         .and_then(|v| v.as_str())
         .ok_or_else(|| {
-            sc_cli::Error::Input("input relay-chain spec has no top-level `rootchain` field".to_string())
+            sc_cli::Error::Input(
+                "input relay-chain spec has no top-level `rootchain` field".to_string(),
+            )
         })?
         .to_string();
 
     // Parse output spec JSON and patch the top-level `.rootchain` field directly.
-    // polkadot-v0.9.40: extensions are top-level fields, not nested under `.extensions`.
+    // polkadot-v0.9.40: extensions are top-level fields, not nested under
+    // `.extensions`.
     let mut output_json: serde_json::Value =
         serde_json::from_str(&output_spec_json).map_err(|e| {
             sc_cli::Error::Input(format!("failed to parse output chain spec JSON: {}", e))
@@ -285,9 +284,11 @@ fn inject_relay_rootchain(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use sp_core::storage::Storage;
     use std::collections::BTreeMap;
+
+    use sp_core::storage::Storage;
+
+    use super::*;
 
     // -----------------------------------------------------------------------
     // Helper: build a Storage from a flat key-value list.
@@ -356,8 +357,10 @@ mod tests {
         // any hex stripping. "0xfinalized" would fail the equality check and fall
         // through to hash parsing (which would then fail), never matching "finalized".
         let not_finalized_with_prefix = "0xfinalized";
-        assert_ne!(not_finalized_with_prefix, "finalized",
-            "0xfinalized must NOT equal finalized — prefix prevents sentinel match");
+        assert_ne!(
+            not_finalized_with_prefix, "finalized",
+            "0xfinalized must NOT equal finalized — prefix prevents sentinel match"
+        );
         // Only the bare literal is the sentinel.
         assert_eq!("finalized", "finalized", "finalized sentinel must equal itself");
     }
@@ -372,7 +375,8 @@ mod tests {
     //   { "id": "thxnet_testnet", "name": "THXNET. Testnet", ... }
     //
     // Input leafchain spec fixture (flat polkadot-v0.9.40 shape):
-    //   { "id": "sand_testnet", "rootchain": "old_value", "leafchain_id": 1003, ... }
+    //   { "id": "sand_testnet", "rootchain": "old_value", "leafchain_id": 1003, ...
+    // }
     //
     // Positive assertion: after injection, output has top-level `.rootchain`
     //   equal to relay's `.id`, and `.leafchain_id` is preserved.
