@@ -39,13 +39,15 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
 
-      - name: Prepare Nix cache directory
+      - name: Prepare runner cache directories
         run: |
           # ARC ephemeral runner has /home/runner/.cache root-owned with a
-          # read-only sccache-bin mount inside it. Non-recursively chown only
-          # the dirs Nix needs, so we don't touch the sccache mount.
-          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix"
-          sudo chown "$(id -u):$(id -g)" "$HOME/.cache" "$HOME/.cache/nix"
+          # read-only sccache-bin mount inside it, and /home/runner/.cargo
+          # also unwritable. Non-recursively chown only the dirs Nix and
+          # cargo need, so we don't touch the sccache mount.
+          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix" "$HOME/.cargo"
+          sudo chown "$(id -u):$(id -g)" \
+            "$HOME/.cache" "$HOME/.cache/nix" "$HOME/.cargo"
 
       - name: Ensure Nix is available
         run: |
@@ -117,13 +119,15 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
 
-      - name: Prepare Nix cache directory
+      - name: Prepare runner cache directories
         run: |
           # ARC ephemeral runner has /home/runner/.cache root-owned with a
-          # read-only sccache-bin mount inside it. Non-recursively chown only
-          # the dirs Nix needs, so we don't touch the sccache mount.
-          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix"
-          sudo chown "$(id -u):$(id -g)" "$HOME/.cache" "$HOME/.cache/nix"
+          # read-only sccache-bin mount inside it, and /home/runner/.cargo
+          # also unwritable. Non-recursively chown only the dirs Nix and
+          # cargo need, so we don't touch the sccache mount.
+          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix" "$HOME/.cargo"
+          sudo chown "$(id -u):$(id -g)" \
+            "$HOME/.cache" "$HOME/.cache/nix" "$HOME/.cargo"
 
       - name: Ensure Nix is available
         run: |
@@ -193,13 +197,15 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
 
-      - name: Prepare Nix cache directory
+      - name: Prepare runner cache directories
         run: |
           # ARC ephemeral runner has /home/runner/.cache root-owned with a
-          # read-only sccache-bin mount inside it. Non-recursively chown only
-          # the dirs Nix needs, so we don't touch the sccache mount.
-          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix"
-          sudo chown "$(id -u):$(id -g)" "$HOME/.cache" "$HOME/.cache/nix"
+          # read-only sccache-bin mount inside it, and /home/runner/.cargo
+          # also unwritable. Non-recursively chown only the dirs Nix and
+          # cargo need, so we don't touch the sccache mount.
+          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix" "$HOME/.cargo"
+          sudo chown "$(id -u):$(id -g)" \
+            "$HOME/.cache" "$HOME/.cache/nix" "$HOME/.cargo"
 
       - name: Ensure Nix is available
         run: |
