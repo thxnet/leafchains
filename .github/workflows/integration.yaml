@@ -61,7 +61,7 @@ jobs:
 
       - name: Setup container metadata
         id: meta-leafchain
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/leafchain
           tags: |
@@ -78,7 +78,7 @@ jobs:
 
       - name: Setup container metadata
         id: meta-leafchain-genesis
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/leafchain-genesis
           tags: |
