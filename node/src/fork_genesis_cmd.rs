@@ -28,7 +28,7 @@ use crate::chain_spec;
 /// Reads the state at a chosen finalized block, strips consensus- and
 /// block-execution-transient storage, drops `Balances.TotalIssuance` to avoid
 /// divergence with the freshly-assembled collator balances, assembles fresh
-/// dev-authority genesis storage (Alice/Bob/Charlie), merges (fresh-wins on
+/// dev-authority genesis storage (Alice/Bob), merges (fresh-wins on
 /// collision), and serialises to raw chain-spec JSON.
 ///
 /// The `--relay-chain-spec` flag is optional: when supplied, its `.id` field is

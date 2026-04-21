@@ -215,7 +215,7 @@ where
     sp_runtime::MultiSigner::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
-/// Canonical dev collator set for a fork genesis: Alice, Bob, Charlie.
+/// Canonical dev collator set for a fork genesis: Alice, Bob.
 ///
 /// Each collator is endowed with `100 * UNITS` of native token.  The AuraId
 /// keys are derived from the same SR25519 dev seed so that a local dev node
@@ -223,7 +223,7 @@ where
 ///
 /// # Stability guarantee
 ///
-/// The order — Alice, Bob, Charlie — is stable across calls and must remain so;
+/// The order — Alice, Bob — is stable across calls and must remain so;
 /// the `CollatorSelection` pallet treats the first entry in `invulnerables` as
 /// the preferred block author when multiple options are valid.
 pub fn dev_collator_set() -> Vec<CollatorTuple> {
@@ -238,11 +238,6 @@ pub fn dev_collator_set() -> Vec<CollatorTuple> {
             account_id_from_seed::<sp_core::sr25519::Public>("Bob"),
             COLLATOR_ENDOWMENT,
             get_from_seed::<AuraId>("Bob"),
-        ),
-        (
-            account_id_from_seed::<sp_core::sr25519::Public>("Charlie"),
-            COLLATOR_ENDOWMENT,
-            get_from_seed::<AuraId>("Charlie"),
         ),
     ]
 }
@@ -557,28 +552,20 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // Test T2-1: dev_collator_set returns 3 distinct AccountIds
+    // Test T2-1: dev_collator_set returns 2 distinct AccountIds
     // -----------------------------------------------------------------------
     #[test]
-    fn dev_collator_set_has_three_distinct_accounts() {
+    fn dev_collator_set_has_two_distinct_accounts() {
         let collators = dev_collator_set();
-        assert_eq!(collators.len(), 3, "dev_collator_set must return exactly 3 entries");
+        assert_eq!(collators.len(), 2, "dev_collator_set must return exactly 2 entries");
 
         let account_ids: Vec<AccountId> = collators.iter().map(|(acc, ..)| acc.clone()).collect();
 
-        // All three AccountIds must be pairwise distinct.
         assert_ne!(account_ids[0], account_ids[1], "Alice and Bob must have distinct AccountIds");
-        assert_ne!(account_ids[1], account_ids[2], "Bob and Charlie must have distinct AccountIds");
-        assert_ne!(
-            account_ids[0], account_ids[2],
-            "Alice and Charlie must have distinct AccountIds"
-        );
 
         // Each AuraId must also be distinct (derived from different sr25519 keys).
         let aura_ids: Vec<AuraId> = collators.iter().map(|(_, _, aura)| aura.clone()).collect();
         assert_ne!(aura_ids[0], aura_ids[1], "Alice and Bob must have distinct AuraIds");
-        assert_ne!(aura_ids[1], aura_ids[2], "Bob and Charlie must have distinct AuraIds");
-        assert_ne!(aura_ids[0], aura_ids[2], "Alice and Charlie must have distinct AuraIds");
     }
 
     // -----------------------------------------------------------------------
@@ -609,7 +596,7 @@ mod tests {
         // Field 2 (balances): one entry per collator.
         assert_eq!(
             genesis.balances.balances.len(),
-            3,
+            2,
             "balances must have one entry per collator when extra_endowed is empty"
         );
 
@@ -619,15 +606,15 @@ mod tests {
             "parachain_info.parachain_id must match supplied para_id"
         );
 
-        // Field 4 (collator_selection): invulnerables has 3 entries.
+        // Field 4 (collator_selection): invulnerables has one entry per collator.
         assert_eq!(
             genesis.collator_selection.invulnerables.len(),
-            3,
+            2,
             "collator_selection.invulnerables must have one entry per collator"
         );
 
-        // Field 5 (session): 3 key entries.
-        assert_eq!(genesis.session.keys.len(), 3, "session.keys must have one entry per collator");
+        // Field 5 (session): 2 key entries.
+        assert_eq!(genesis.session.keys.len(), 2, "session.keys must have one entry per collator");
 
         // Field 12 (sudo): root_key is present.
         assert_eq!(genesis.sudo.key, Some(root_key), "sudo.key must match the supplied root_key");
@@ -654,10 +641,10 @@ mod tests {
         let genesis =
             assemble_general_fork_genesis(&wasm, collators.clone(), Some(root_key), para_id, extra);
 
-        // Total balance entries: 3 collators + 1 extra = 4.
+        // Total balance entries: 2 collators + 1 extra = 3.
         assert_eq!(
             genesis.balances.balances.len(),
-            4,
+            3,
             "extra_endowed must be appended (additive), not merged or deduplicated"
         );
 
