@@ -19,7 +19,7 @@ env:
 jobs:
   build-nix-flake:
     name: Build Nix Flake
-    runs-on: [hetzner]
+    runs-on: hetzner-thxnet
     steps:
       - uses: actions/checkout@v3
 

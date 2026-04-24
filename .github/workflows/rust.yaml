@@ -31,7 +31,7 @@ concurrency:
 jobs:
   rustfmt:
     name: Check Rust format
-    runs-on: [hetzner]
+    runs-on: hetzner-thxnet
     steps:
       - uses: actions/checkout@v3
 
@@ -87,7 +87,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: [hetzner]
+    runs-on: hetzner-thxnet
     needs:
       - rustfmt
     steps:
@@ -131,7 +131,7 @@ jobs:
 
   test:
     name: Test
-    runs-on: [hetzner]
+    runs-on: hetzner-thxnet
     needs:
       - clippy
       # - udeps
