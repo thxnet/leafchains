@@ -19,13 +19,21 @@ env:
 jobs:
   format:
     name: Lint format
-    runs-on: [self-hosted, hetzner-thxnet]
+    runs-on: hetzner-thxnet
     steps:
       - uses: actions/checkout@v3
 
       - name: Install system dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y xz-utils
+
+      - name: Prepare Nix cache directory
+        run: |
+          # ARC ephemeral runner has /home/runner/.cache root-owned with a
+          # read-only sccache-bin mount inside it. Non-recursively chown only
+          # the dirs Nix needs, so we don't touch the sccache mount.
+          sudo mkdir -p "$HOME/.cache" "$HOME/.cache/nix"
+          sudo chown "$(id -u):$(id -g)" "$HOME/.cache" "$HOME/.cache/nix"
 
       - name: Ensure Nix is available
         run: |
@@ -69,7 +77,7 @@ jobs:
 
   commit:
     name: Lint commit
-    runs-on: [self-hosted, hetzner-thxnet]
+    runs-on: hetzner-thxnet
     steps:
       - uses: actions/checkout@v3
         with:
@@ -82,7 +90,7 @@ jobs:
 
   codespell:
     name: Codespell
-    runs-on: [self-hosted, hetzner-thxnet]
+    runs-on: hetzner-thxnet
     steps:
       - uses: actions/checkout@v3
 

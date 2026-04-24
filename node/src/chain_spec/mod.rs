@@ -1,3 +1,4 @@
+pub mod fork;
 pub mod mainnet;
 pub mod testnet;
 
